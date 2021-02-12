@@ -14,7 +14,7 @@
 	<name>robosoccer</name>
 	<description>Group assignment for Integrated Software Systems And Quality Control course at the University of Miskolc.</description>
 	<properties>
-		<java.version>1.8</java.version>
+		<java.version>11</java.version>
 	</properties>
 	<dependencies>
 		<dependency>
