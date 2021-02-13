@@ -11,9 +11,9 @@ import java.util.Date;
 @AllArgsConstructor
 @ToString
 @EqualsAndHashCode
-public class Connection {
+public class ConnectionMessage {
 
-    private String sessionId;
+    private Player player;
     private Date date;
     private ConnectionType connectionType;
 }

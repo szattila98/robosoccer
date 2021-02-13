@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Chat WebSocket</title>
+    <title>Robosoccer</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.0/sockjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
     <script type="text/javascript">
-        var stompClient = null;
+        let stompClient = null;
 
         function setConnected(connected) {
             document.getElementById('connect').disabled = connected;
@@ -16,17 +16,28 @@
         }
 
         function connect() {
-            var socket = new SockJS('/api/ws');
+            let socket = new SockJS('/api/ws');
             stompClient = Stomp.over(socket);
             stompClient.connect({}, function (frame) {
-                var sessionId = /\/([^\/]+)\/websocket/.exec(socket._transport.url)[1];
+                let sessionId = /\/([^\/]+)\/websocket/.exec(socket._transport.url)[1];
                 document.getElementById("sessionId").innerHTML = 'My sessionId: ' + sessionId;
                 setConnected(true);
                 console.log('Connected: ' + frame);
                 stompClient.subscribe('/socket/connections', function (messageOutput) {
-                    showMessageOutput(JSON.parse(messageOutput.body));
+                    let msg = JSON.parse(messageOutput.body);
+                    if (msg.connectionType === 'REFUSED' && msg.player.sessionId === sessionId) {
+                        disconnect();
+                    } else {
+                        showMessageOutput(msg);
+                    }
                 });
+                sendMessage();
             });
+        }
+
+        function sendMessage() {
+            let name = document.getElementById("name").value;
+            stompClient.send("/api/join", {}, name);
         }
 
         function disconnect() {
@@ -40,10 +51,13 @@
         }
 
         function showMessageOutput(messageOutput) {
-            var response = document.getElementById('response');
-            var p = document.createElement('p');
+            let response = document.getElementById('response');
+            let p = document.createElement('p');
             p.style.wordWrap = 'break-word';
-            p.appendChild(document.createTextNode(messageOutput.sessionId + " " + messageOutput.connectionType + " on " + messageOutput.date + "!"));
+            p.appendChild(
+                document.createTextNode(
+                    messageOutput.player.name + ' with sessionId: ' + messageOutput.player.sessionId + " " +
+                    messageOutput.connectionType + " on " + messageOutput.date + "!"));
             response.appendChild(p);
         }
     </script>
@@ -51,6 +65,7 @@
 <body onload="disconnect()">
 <div>
     <p id="sessionId"></p>
+    <input type="text" id="name" placeholder="Player name">
     <div>
         <button id="connect" onclick="connect();">Connect</button>
         <button id="disconnect" disabled="disabled" onclick="disconnect();">
