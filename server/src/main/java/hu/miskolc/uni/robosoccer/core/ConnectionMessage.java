@@ -5,6 +5,11 @@ import lombok.*;
 
 import java.util.Date;
 
+/**
+ * Message sent about the status of connections.
+ *
+ * @author Attila Szőke
+ */
 @Getter
 @Setter
 @NoArgsConstructor
@@ -13,7 +18,7 @@ import java.util.Date;
 @EqualsAndHashCode
 public class ConnectionMessage {
 
-    private Player player;
+    private User user;
     private Date date;
     private ConnectionType connectionType;
 }

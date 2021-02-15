@@ -1,7 +1,7 @@
 package hu.miskolc.uni.robosoccer.web;
 
 import hu.miskolc.uni.robosoccer.core.ConnectionMessage;
-import hu.miskolc.uni.robosoccer.core.Player;
+import hu.miskolc.uni.robosoccer.core.User;
 import hu.miskolc.uni.robosoccer.core.enums.ConnectionType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -14,11 +14,16 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Main controller of the application.
+ *
+ * @author Attila Szőke
+ */
 @RestController
 public class GameController {
 
-    private static final int MAX_PLAYER_COUNT = 2;
-    public static final Map<String, Player> PLAYERS = new HashMap<>();
+    private static final int MAX_USER_COUNT = 2;
+    public static final Map<String, User> USERS = new HashMap<>();
 
     private final SimpMessagingTemplate template;
 
@@ -27,14 +32,20 @@ public class GameController {
         this.template = template;
     }
 
+    /**
+     * Joins a player to the game.
+     *
+     * @param sha  the header accessor
+     * @param name the player name
+     */
     @MessageMapping("/join")
     public void join(SimpMessageHeaderAccessor sha, @Payload String name) {
-        Player player = new Player(sha.getSessionId(), name);
-        if (PLAYERS.size() < MAX_PLAYER_COUNT) {
-            GameController.PLAYERS.put(sha.getSessionId(), player);
-            template.convertAndSend("/socket/connections", new ConnectionMessage(player, new Date(), ConnectionType.CONNECTED));
+        User user = new User(sha.getSessionId(), name);
+        if (USERS.size() < MAX_USER_COUNT) {
+            GameController.USERS.put(sha.getSessionId(), user);
+            template.convertAndSend("/socket/game", new ConnectionMessage(user, new Date(), ConnectionType.CONNECTED));
         } else {
-            template.convertAndSend("/socket/connections", new ConnectionMessage(player, new Date(), ConnectionType.REFUSED));
+            template.convertAndSend("/socket/game", new ConnectionMessage(user, new Date(), ConnectionType.REFUSED));
         }
     }
 }
