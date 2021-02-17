@@ -1,6 +1,9 @@
 package hu.miskolc.uni.robosoccer.core;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
 /**
  * Represents the soccer players.
@@ -9,12 +12,11 @@ import lombok.*;
  * @author Attila Szőke
  */
 @Getter
-@Setter
 @AllArgsConstructor
 @ToString
 @EqualsAndHashCode
 public class Player {
 
-    private int id;
-    private Position position;
+    private final int id;
+    private final Position position;
 }

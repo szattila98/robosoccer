@@ -1,4 +1,4 @@
-package hu.miskolc.uni.robosoccer.core.exception;
+package hu.miskolc.uni.robosoccer.core.exceptions;
 
 /**
  * Thrown when the match is full, in this case two players joined.

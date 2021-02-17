@@ -18,7 +18,7 @@ import lombok.ToString;
 public class Ball {
 
     private Integer playerId; // null if no one has it
-    private Position position;
+    private final Position position;
 
     public Ball() { // TODO better position when there is a field
         this.playerId = null;

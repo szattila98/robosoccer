@@ -2,7 +2,6 @@ package hu.miskolc.uni.robosoccer.core;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
 
 import java.util.HashMap;
@@ -14,7 +13,6 @@ import java.util.Map;
  * @author Attila Szőke
  */
 @Getter
-@Setter
 @ToString
 @EqualsAndHashCode
 public class User {
@@ -35,5 +33,9 @@ public class User {
         for (int i = 1; i < 12; i++) {
             this.players.put(i, new Player(i, new Position(0, 0)));
         }
+    }
+
+    public void incrementPoints() {
+        this.points++;
     }
 }

@@ -1,9 +1,10 @@
 package hu.miskolc.uni.robosoccer.web;
 
 import hu.miskolc.uni.robosoccer.core.ConnectionMessage;
+import hu.miskolc.uni.robosoccer.core.Match;
 import hu.miskolc.uni.robosoccer.core.User;
 import hu.miskolc.uni.robosoccer.core.enums.ConnectionType;
-import hu.miskolc.uni.robosoccer.core.exception.MatchFullException;
+import hu.miskolc.uni.robosoccer.core.exceptions.MatchFullException;
 import hu.miskolc.uni.robosoccer.service.GameService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +45,7 @@ public class GameController {
         User user = new User(sha.getSessionId(), name);
         try {
             service.join(user);
-            service.MATCH.getUsers().forEach((i, u) -> u.fillTeam());
+            Match.getInstance().getUsers().forEach((i, u) -> u.fillTeam());
             template.convertAndSend("/socket/game", new ConnectionMessage(user, new Date(), ConnectionType.CONNECTED));
             log.info("User: {} joined!", user);
         } catch (MatchFullException e) {
