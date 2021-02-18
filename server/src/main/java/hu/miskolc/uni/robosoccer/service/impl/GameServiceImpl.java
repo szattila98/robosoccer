@@ -18,5 +18,6 @@ public class GameServiceImpl implements GameService {
     @Override
     public void join(User user) throws MatchFullException {
         Match.getInstance().joinPlayer(user);
+        Match.getInstance().getUsers().forEach((i, u) -> u.fillTeam());
     }
 }

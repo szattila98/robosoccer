@@ -5,6 +5,6 @@ package hu.miskolc.uni.robosoccer.core.enums;
  *
  * @author Attila Szőke
  */
-public enum RoundStatus {
+public enum RoundStatusType {
     PENDING, ONGOING, ENDED
 }

@@ -17,11 +17,15 @@ import lombok.ToString;
 @EqualsAndHashCode
 public class Position {
 
-    private int x;
-    private int y;
+    private double x;
+    private double y;
 
-    public void move(int newX, int newY) {
+    public void move(double newX, double newY) {
         this.x = newX;
         this.y = newY;
+    }
+
+    public Position invert() {
+        return new Position(this.x * -1, this.y * -1);
     }
 }

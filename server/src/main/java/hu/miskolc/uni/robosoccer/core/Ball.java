@@ -20,8 +20,8 @@ public class Ball {
     private Integer playerId; // null if no one has it
     private final Position position;
 
-    public Ball() { // TODO better position when there is a field
+    public Ball() {
         this.playerId = null;
-        this.position = new Position(0, 0);
+        this.position = new Position(0, 0); // center of the soccer pitch
     }
 }

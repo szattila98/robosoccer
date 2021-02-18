@@ -1,6 +1,7 @@
 package hu.miskolc.uni.robosoccer.core;
 
-import hu.miskolc.uni.robosoccer.core.enums.RoundStatus;
+import hu.miskolc.uni.robosoccer.core.enums.RoundStatusType;
+import hu.miskolc.uni.robosoccer.core.enums.SideType;
 import hu.miskolc.uni.robosoccer.core.exceptions.MatchFullException;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -25,13 +26,13 @@ public class Match {
     private final Map<String, User> users;
     private final Ball ball;
     private int roundNo;
-    private RoundStatus roundStatus;
+    private RoundStatusType roundStatusType;
 
     private Match() {
         this.users = new HashMap<>();
         this.ball = new Ball();
         this.roundNo = 0;
-        this.roundStatus = RoundStatus.PENDING;
+        this.roundStatusType = RoundStatusType.PENDING;
     }
 
     public static Match getInstance() {
@@ -40,6 +41,11 @@ public class Match {
 
     public void joinPlayer(User user) throws MatchFullException {
         if (users.size() < 2) {
+            if (users.size() == 0) {
+                user.setSide(SideType.LEFT);
+            } else {
+                user.setSide(SideType.RIGHT);
+            }
             users.put(user.getSessionId(), user);
         } else {
             throw new MatchFullException();
@@ -50,7 +56,7 @@ public class Match {
         roundNo++;
     }
 
-    public void setRoundStatus(RoundStatus roundStatus) {
-        this.roundStatus = roundStatus;
+    public void setRoundStatusType(RoundStatusType roundStatusType) {
+        this.roundStatusType = roundStatusType;
     }
 }
