@@ -1,9 +1,9 @@
 package hu.miskolc.uni.robosoccer.config;
 
 import hu.miskolc.uni.robosoccer.core.ConnectionMessage;
+import hu.miskolc.uni.robosoccer.core.Match;
 import hu.miskolc.uni.robosoccer.core.User;
 import hu.miskolc.uni.robosoccer.core.enums.ConnectionType;
-import hu.miskolc.uni.robosoccer.web.GameController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -31,9 +31,9 @@ public class DisconnectListener {
     @EventListener
     public void disconnectHandler(SessionDisconnectEvent event) {
         StompHeaderAccessor sha = StompHeaderAccessor.wrap(event.getMessage());
-        User user = GameController.USERS.get(sha.getSessionId());
+        User user = Match.getInstance().getUsers().get(sha.getSessionId());
         ConnectionMessage conn = new ConnectionMessage(user, new Date(), ConnectionType.DISCONNECTED);
-        GameController.USERS.remove(sha.getSessionId());
+        Match.getInstance().getUsers().remove(sha.getSessionId());
         template.convertAndSend("/socket/game", conn);
     }
 }
