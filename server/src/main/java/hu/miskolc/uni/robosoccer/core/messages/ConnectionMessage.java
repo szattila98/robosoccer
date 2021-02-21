@@ -1,5 +1,6 @@
-package hu.miskolc.uni.robosoccer.core;
+package hu.miskolc.uni.robosoccer.core.messages;
 
+import hu.miskolc.uni.robosoccer.core.User;
 import hu.miskolc.uni.robosoccer.core.enums.ConnectionType;
 import lombok.*;
 

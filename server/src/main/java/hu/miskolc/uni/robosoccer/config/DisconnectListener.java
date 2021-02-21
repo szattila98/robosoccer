@@ -1,6 +1,6 @@
 package hu.miskolc.uni.robosoccer.config;
 
-import hu.miskolc.uni.robosoccer.core.ConnectionMessage;
+import hu.miskolc.uni.robosoccer.core.messages.ConnectionMessage;
 import hu.miskolc.uni.robosoccer.core.Match;
 import hu.miskolc.uni.robosoccer.core.User;
 import hu.miskolc.uni.robosoccer.core.enums.ConnectionType;

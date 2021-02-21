@@ -1,9 +1,14 @@
 package hu.miskolc.uni.robosoccer.web;
 
-import hu.miskolc.uni.robosoccer.core.ConnectionMessage;
+import hu.miskolc.uni.robosoccer.core.enums.ReadyType;
+import hu.miskolc.uni.robosoccer.core.enums.RoundStatusType;
+import hu.miskolc.uni.robosoccer.core.exceptions.MatchOngoingException;
+import hu.miskolc.uni.robosoccer.core.exceptions.UserNotReadyException;
+import hu.miskolc.uni.robosoccer.core.messages.ConnectionMessage;
 import hu.miskolc.uni.robosoccer.core.User;
 import hu.miskolc.uni.robosoccer.core.enums.ConnectionType;
 import hu.miskolc.uni.robosoccer.core.exceptions.MatchFullException;
+import hu.miskolc.uni.robosoccer.core.messages.StartMessage;
 import hu.miskolc.uni.robosoccer.service.GameService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,4 +56,20 @@ public class GameController {
             log.info("User: {} join refused!", user);
         }
     }
+
+    @MessageMapping("/start")
+    public void startMatch(@Payload User user) {
+        try{
+            service.startMatch(user);
+            template.convertAndSend("/socket/game", new StartMessage(user, ReadyType.READY, RoundStatusType.ONGOING));
+            log.info("User {} is ready, game is starting!", user);
+        } catch (MatchOngoingException e) {
+            template.convertAndSend("/socket/game", new StartMessage(user, ReadyType.READY, RoundStatusType.ONGOING));
+            log.info("User {} is ready, but the game has already started!", user);
+        } catch (UserNotReadyException e) {
+            template.convertAndSend("/socket/game", new StartMessage(user, ReadyType.READY, RoundStatusType.PENDING));
+            log.info("User {} is ready, but the opponent is still waiting!", user);
+        }
+    }
+
 }
