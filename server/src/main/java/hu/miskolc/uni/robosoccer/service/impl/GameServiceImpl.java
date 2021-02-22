@@ -33,7 +33,7 @@ public class GameServiceImpl implements GameService {
             throw new MatchOngoingException();
         }
 
-        Match.getInstance().getUsers().get(user.getSessionId()).setReadyType(ReadyType.READY);
+        Match.getInstance().getUsers().get(user.getSessionId()).setReadyType(true);
 
         if(checkUserReady()) {
             Match.getInstance().setRoundStatusType(RoundStatusType.ONGOING);
@@ -45,7 +45,7 @@ public class GameServiceImpl implements GameService {
 
     private boolean checkUserReady() {
         for(Map.Entry<String,User> entry : Match.getInstance().getUsers().entrySet()) {
-            if(entry.getValue().getReadyType() == ReadyType.WAIT) {
+            if(!entry.getValue().isReadyType()) {
                 return false;
             }
         }

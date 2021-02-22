@@ -24,14 +24,14 @@ public class User {
     private SideType side;
     private final Map<Integer, Player> team;
     private int points;
-    private ReadyType readyType;
+    private boolean readyType;
 
     public User(String sessionId, String name) {
         this.sessionId = sessionId;
         this.name = name;
         this.team = new HashMap<>();
         this.points = 0;
-        this.readyType = ReadyType.WAIT;
+        this.readyType = false;
     }
 
     public void fillTeam() {
@@ -67,7 +67,7 @@ public class User {
         this.side = side;
     }
 
-    public void setReadyType(ReadyType readyType) {
+    public void setReadyType(boolean readyType) {
         this.readyType = readyType;
     }
 
