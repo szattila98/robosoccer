@@ -1,0 +1,185 @@
+{
+    "users": [
+        {
+            "sessionId": "snpb4ano",
+            "name": "Jani",
+            "side": "LEFT",
+            "team": [
+                {
+                    "id": 0,
+                    "position": {
+                        "x": 10,
+                        "y": 50
+                    }
+                },
+                {
+                    "id": 1,
+                    "position": {
+                        "x": 30,
+                        "y": 90
+                    }
+                },
+                {
+                    "id": 2,
+                    "position": {
+                        "x": 25,
+                        "y": 70
+                    }
+                },
+                {
+                    "id": 3,
+                    "position": {
+                        "x": 25,
+                        "y": 30
+                    }
+                },
+                {
+                    "id": 4,
+                    "position": {
+                        "x": 30,
+                        "y": 10
+                    }
+                },
+                {
+                    "id": 5,
+                    "position": {
+                        "x": 55,
+                        "y": 75
+                    }
+                },
+                {
+                    "id": 6,
+                    "position": {
+                        "x": 60,
+                        "y": 50
+                    }
+                },
+                {
+                    "id": 7,
+                    "position": {
+                        "x": 55,
+                        "y": 25
+                    }
+                },
+                {
+                    "id": 8,
+                    "position": {
+                        "x": 105,
+                        "y": 75
+                    }
+                },
+                {
+                    "id": 9,
+                    "position": {
+                        "x": 110,
+                        "y": 50
+                    }
+                },
+                {
+                    "id": 10,
+                    "position": {
+                        "x": 105,
+                        "y": 25
+                    }
+                }
+            ],
+            "points": 0,
+            "ready": false
+        },
+        {
+            "sessionId": "qhp0yj52",
+            "name": "Peti",
+            "side": "RIGHT",
+            "team": [
+                {
+                    "id": 0,
+                    "position": {
+                        "x": 130,
+                        "y": 50
+                    }
+                },
+                {
+                    "id": 1,
+                    "position": {
+                        "x": 110,
+                        "y": 10
+                    }
+                },
+                {
+                    "id": 2,
+                    "position": {
+                        "x": 115,
+                        "y": 30
+                    }
+                },
+                {
+                    "id": 3,
+                    "position": {
+                        "x": 115,
+                        "y": 70
+                    }
+                },
+                {
+                    "id": 4,
+                    "position": {
+                        "x": 110,
+                        "y": 90
+                    }
+                },
+                {
+                    "id": 5,
+                    "position": {
+                        "x": 85,
+                        "y": 25
+                    }
+                },
+                {
+                    "id": 6,
+                    "position": {
+                        "x": 80,
+                        "y": 50
+                    }
+                },
+                {
+                    "id": 7,
+                    "position": {
+                        "x": 85,
+                        "y": 75
+                    }
+                },
+                {
+                    "id": 8,
+                    "position": {
+                        "x": 35,
+                        "y": 25
+                    }
+                },
+                {
+                    "id": 9,
+                    "position": {
+                        "x": 30,
+                        "y": 50
+                    }
+                },
+                {
+                    "id": 10,
+                    "position": {
+                        "x": 35,
+                        "y": 75
+                    }
+                }
+            ],
+            "points": 0,
+            "ready": false
+        }
+    ],
+    "ball": {
+        "playerId": null,
+        "position": {
+            "x": 70,
+            "y": 50
+        }
+    },
+    "roundNo": 0,
+    "roundStatus": "PENDING"
+}
