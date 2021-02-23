@@ -5,11 +5,16 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.0/sockjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
     <script type="text/javascript">
+        const REFUSED = "REFUSED";
+        const CONN = "CONN";
+        const READY = "READY";
+
         let stompClient = null;
 
         function setConnected(connected) {
             document.getElementById('connect').disabled = connected;
             document.getElementById('disconnect').disabled = !connected;
+            document.getElementById('ready').disabled = !connected;
             document.getElementById('conversationDiv').style.visibility
                 = connected ? 'visible' : 'hidden';
             document.getElementById('response').innerHTML = '';
@@ -25,19 +30,29 @@
                 console.log('Connected: ' + frame);
                 stompClient.subscribe('/socket/game', function (messageOutput) {
                     let msg = JSON.parse(messageOutput.body);
-                    if (msg.connectionType === 'REFUSED' && msg.user.sessionId === sessionId) {
-                        disconnect();
-                    } else {
-                        showMessageOutput(msg);
+                    if (msg.match) { // MatchStateMessage
+                        console.log(msg);
+                    } else if (msg.connectionType) { // UserConnectionStateMessage
+                        if (msg.connectionType === REFUSED && msg.user.sessionId === sessionId) {
+                            disconnect();
+                        } else {
+                            showMessageOutput(msg, CONN);
+                        }
+                    } else if (msg.roundStatus) { // UserReadyStateMessage
+                        showMessageOutput(msg, READY)
                     }
                 });
-                sendMessage();
+                doConnect();
             });
         }
 
-        function sendMessage() {
+        function doConnect() {
             let name = document.getElementById("name").value;
             stompClient.send("/api/join", {}, name);
+        }
+
+        function toggleReady() {
+            stompClient.send("/api/ready");
         }
 
         function disconnect() {
@@ -50,14 +65,25 @@
             console.log("Disconnected");
         }
 
-        function showMessageOutput(messageOutput) {
+        function showMessageOutput(messageOutput, messageType) {
             let response = document.getElementById('response');
             let p = document.createElement('p');
             p.style.wordWrap = 'break-word';
-            p.appendChild(
-                document.createTextNode(
-                    messageOutput.user.name + ' with sessionId: ' + messageOutput.user.sessionId + " " +
-                    messageOutput.connectionType + " on " + messageOutput.date + "!"));
+            switch (messageType) {
+                case CONN:
+                    p.appendChild(
+                        document.createTextNode(
+                            messageOutput.user.name + ' with sessionId: ' + messageOutput.user.sessionId + " " +
+                            messageOutput.connectionType + " on " + messageOutput.date + "!"));
+                    break;
+                case READY:
+                    p.appendChild(
+                        document.createTextNode(
+                            messageOutput.user.name + ' with sessionId: ' + messageOutput.user.sessionId + " ready: " +
+                            messageOutput.ready + ", round is " + messageOutput.roundStatus + "!"));
+                    break;
+            }
+
             response.appendChild(p);
         }
     </script>
@@ -71,6 +97,7 @@
         <button id="disconnect" disabled="disabled" onclick="disconnect();">
             Disconnect
         </button>
+        <button id="ready" onclick="toggleReady();" disabled="disabled">Toggle Ready</button>
     </div>
     <br/>
     <div id="conversationDiv">

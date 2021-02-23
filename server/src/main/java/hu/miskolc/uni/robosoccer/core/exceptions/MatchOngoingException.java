@@ -1,8 +1,13 @@
 package hu.miskolc.uni.robosoccer.core.exceptions;
 
+/**
+ * Thrown when somebody wants to change his ready status, but the match is already ongoing.
+ *
+ * @author Tamás Sólyom
+ */
 public class MatchOngoingException extends Exception {
 
-    private static final String ERROR_MSG = "The match is already in progress!";
+    private static final String ERROR_MSG = "The match is already ongoing!";
 
     public MatchOngoingException() {
         super(ERROR_MSG);

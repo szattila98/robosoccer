@@ -7,7 +7,7 @@ package hu.miskolc.uni.robosoccer.core.exceptions;
  */
 public class MatchFullException extends Exception {
 
-    private static final String ERROR_MSG = "The match is full!";
+    private static final String ERROR_MSG = "The match is full, no more can join!";
 
     public MatchFullException() {
         super(ERROR_MSG);

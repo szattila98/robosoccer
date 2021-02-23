@@ -1,16 +1,15 @@
 package hu.miskolc.uni.robosoccer.web;
 
 import hu.miskolc.uni.robosoccer.core.Match;
-import hu.miskolc.uni.robosoccer.core.enums.ReadyType;
-import hu.miskolc.uni.robosoccer.core.enums.RoundStatusType;
-import hu.miskolc.uni.robosoccer.core.exceptions.MatchOngoingException;
-import hu.miskolc.uni.robosoccer.core.exceptions.UserNotReadyException;
-import hu.miskolc.uni.robosoccer.core.messages.ConnectionMessage;
 import hu.miskolc.uni.robosoccer.core.User;
 import hu.miskolc.uni.robosoccer.core.enums.ConnectionType;
+import hu.miskolc.uni.robosoccer.core.enums.RoundStatusType;
 import hu.miskolc.uni.robosoccer.core.exceptions.MatchFullException;
+import hu.miskolc.uni.robosoccer.core.exceptions.MatchOngoingException;
+import hu.miskolc.uni.robosoccer.core.exceptions.NoSuchUserException;
 import hu.miskolc.uni.robosoccer.core.messages.MatchStateMessage;
-import hu.miskolc.uni.robosoccer.core.messages.StartMessage;
+import hu.miskolc.uni.robosoccer.core.messages.UserConnectionStateMessage;
+import hu.miskolc.uni.robosoccer.core.messages.UserReadyStateMessage;
 import hu.miskolc.uni.robosoccer.service.GameService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,15 +44,6 @@ public class GameController {
         this.service = service;
     }
 
-    @Scheduled(fixedRate = 50)
-    public void sendMatchState() {
-        if(Match.getInstance().getRoundStatusType() == RoundStatusType.ONGOING) {
-            template.convertAndSend("/socket/game", new MatchStateMessage(Match.getInstance()));
-            log.info("Match state sent");
-        }
-    }
-
-
     /**
      * Joins a player to the game.
      *
@@ -65,26 +55,34 @@ public class GameController {
         User user = new User(sha.getSessionId(), name);
         try {
             service.join(user);
-            template.convertAndSend("/socket/game", new ConnectionMessage(user, new Date(), ConnectionType.CONNECTED));
+            template.convertAndSend("/socket/game", new UserConnectionStateMessage(user, new Date(), ConnectionType.CONNECTED));
             log.info("User: {} joined!", user);
         } catch (MatchFullException e) {
-            template.convertAndSend("/socket/game", new ConnectionMessage(user, new Date(), ConnectionType.REFUSED));
-            log.info("User: {} join refused!", user);
+            template.convertAndSend("/socket/game", new UserConnectionStateMessage(user, new Date(), ConnectionType.REFUSED));
+            log.info(e.getMessage() + " {}", user);
         }
     }
 
-    @MessageMapping("/start")
-    public void startMatch(@Payload User user) {
-        try{
-            service.startMatch(user);
-            template.convertAndSend("/socket/game", new StartMessage(user, ReadyType.READY, RoundStatusType.ONGOING));
-            log.info("User {} is ready, game is starting!", user);
+    @MessageMapping("/ready")
+    public void toggleReady(SimpMessageHeaderAccessor sha) {
+        User user = null;
+        try {
+            user = Match.getInstance().getJoinedUser(sha.getSessionId());
+            service.toggleReady(user);
+            template.convertAndSend("/socket/game", new UserReadyStateMessage(user, user.isReady(), Match.getInstance().getRoundStatus()));
+            log.info("User {} toggled ready!", user);
         } catch (MatchOngoingException e) {
-            template.convertAndSend("/socket/game", new StartMessage(user, ReadyType.READY, RoundStatusType.ONGOING));
-            log.info("User {} is ready, but the game has already started!", user);
-        } catch (UserNotReadyException e) {
-            template.convertAndSend("/socket/game", new StartMessage(user, ReadyType.READY, RoundStatusType.PENDING));
-            log.info("User {} is ready, but the opponent is still waiting!", user);
+            log.warn(e.getMessage() + " {}", user);
+        } catch (NoSuchUserException e) {
+            log.error(e.getMessage() + " {}", sha.getSessionId());
+        }
+    }
+
+    @Scheduled(fixedRate = 50)
+    public void sendMatchState() {
+        if (Match.getInstance().getRoundStatus() == RoundStatusType.ONGOING) {
+            template.convertAndSend("/socket/game", new MatchStateMessage(Match.getInstance()));
+            log.debug("Match state sent: {}", Match.getInstance());
         }
     }
 
