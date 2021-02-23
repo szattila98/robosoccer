@@ -22,6 +22,6 @@ public class Ball {
 
     public Ball() {
         this.playerId = null;
-        this.position = new Position(0, 0); // center of the soccer pitch
+        this.position = new Position(70, -50); // center of the soccer pitch
     }
 }

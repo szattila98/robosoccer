@@ -1,9 +1,6 @@
 package hu.miskolc.uni.robosoccer.core;
 
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.*;
 
 /**
  * Represents the soccer players.
