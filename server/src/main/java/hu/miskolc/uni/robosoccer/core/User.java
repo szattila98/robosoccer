@@ -1,6 +1,7 @@
 package hu.miskolc.uni.robosoccer.core;
 
 import hu.miskolc.uni.robosoccer.core.enums.SideType;
+import hu.miskolc.uni.robosoccer.core.exceptions.PlayerNotFoundException;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -58,6 +59,13 @@ public class User {
             }
         }
 
+    }
+
+    public Player getPlayerById(int playerId) throws PlayerNotFoundException {
+        return this.team.stream()
+                .filter(player -> player.getId() == playerId)
+                .findAny()
+                .orElseThrow(PlayerNotFoundException::new);
     }
 
     public void incrementPoints() {

@@ -83,4 +83,10 @@ public class Match {
     public boolean canStartMatch() {
         return this.users.stream().allMatch(User::isReady) && this.users.size() == 2;
     }
+
+    public void processMovements() {
+        this.ball.processMovement();
+        this.users.forEach((user -> user.getTeam().forEach((Movable::processMovement))));
+    }
+
 }

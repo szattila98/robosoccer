@@ -20,9 +20,9 @@ public class Position {
     private double x;
     private double y;
 
-    public void move(double newX, double newY) {
-        this.x = newX;
-        this.y = newY;
+    public void move(Position newPosition) {
+        this.x = newPosition.getX();
+        this.y = newPosition.getY();
     }
 
     public Position invert() {

@@ -1,10 +1,14 @@
 package hu.miskolc.uni.robosoccer.service.impl;
 
 import hu.miskolc.uni.robosoccer.core.Match;
+import hu.miskolc.uni.robosoccer.core.Player;
+import hu.miskolc.uni.robosoccer.core.Position;
 import hu.miskolc.uni.robosoccer.core.User;
 import hu.miskolc.uni.robosoccer.core.enums.RoundStatusType;
 import hu.miskolc.uni.robosoccer.core.exceptions.MatchFullException;
 import hu.miskolc.uni.robosoccer.core.exceptions.MatchOngoingException;
+import hu.miskolc.uni.robosoccer.core.exceptions.NoSuchUserException;
+import hu.miskolc.uni.robosoccer.core.exceptions.PlayerNotFoundException;
 import hu.miskolc.uni.robosoccer.service.GameService;
 import org.springframework.stereotype.Service;
 
@@ -38,5 +42,23 @@ public class GameServiceImpl implements GameService {
             Match.getInstance().setRoundStatus(RoundStatusType.ONGOING);
         }
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void movePlayer(String sessionId, int playerId, Position destination) throws NoSuchUserException, PlayerNotFoundException {
+        Player player = Match.getInstance().getJoinedUser(sessionId).getPlayerById(playerId);
+        player.calculatePositions(player.getPosition(), destination);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void kick(Position direction, int kickForce) {
+        // TODO implement kick
+    }
+
 
 }
