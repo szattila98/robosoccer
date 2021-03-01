@@ -55,10 +55,10 @@ public class GameController {
         User user = new User(sha.getSessionId(), name);
         try {
             service.join(user);
-            template.convertAndSend("/socket/game", new UserConnectionStateMessage(user, new Date(), ConnectionType.CONNECTED));
+            template.convertAndSend("/socket/join", new UserConnectionStateMessage(user, new Date(), ConnectionType.CONNECTED));
             log.info("User: {} joined!", user);
         } catch (MatchFullException e) {
-            template.convertAndSend("/socket/game", new UserConnectionStateMessage(user, new Date(), ConnectionType.REFUSED));
+            template.convertAndSend("/socket/join", new UserConnectionStateMessage(user, new Date(), ConnectionType.REFUSED));
             log.info(e.getMessage() + " {}", user);
         }
     }
