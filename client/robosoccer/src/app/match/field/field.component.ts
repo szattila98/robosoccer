@@ -4,6 +4,7 @@ import { Ball } from 'src/app/core/models/ball';
 import { Side } from 'src/app/core/models/enum/side';
 import { Match } from 'src/app/core/models/match';
 import { Player } from 'src/app/core/models/player';
+import { SocketService } from 'src/app/core/services/socket.service';
 import { FieldService } from './field.service';
 
 // TODO: config file or object
@@ -35,7 +36,8 @@ export class FieldComponent implements AfterViewInit {
 
   constructor(
     private fieldService: FieldService,
-    private router: Router) { }
+    private router: Router,
+    private socketService: SocketService) { }
 
   async ngAfterViewInit(): Promise<any> {
     this.canvas.nativeElement.width = window.innerWidth - FIELD_MARGIN_PX;

@@ -10,23 +10,40 @@ export class SocketService {
 
   stompClient: CompatClient = null;
 
-  constructor() {
-    this.initializeConnection();
-  }
+  constructor() { }
 
-  private initializeConnection(): void {
-    if (this.stompClient !== null) {
-      return;
+  get connected(): boolean {
+    if (!this.stompClient) {
+      return false;
     }
 
-    this.stompClient = Stomp.over(() => new SockJS(environment.socketBaseUrl));
-    this.stompClient.connect({}, (frame) => {
-      this.stompClient.subscribe('/socket/game', (msg) => {
-        console.log('MSG', msg);
-        // TODO: join, receive data
-        // this.stompClient.send('/api/join', {}, 'asd');
-      });
-    });
-
+    return this.stompClient.connected;
   }
+
+  async connect(): Promise<any> {
+    const socket = new SockJS(environment.socketBaseUrl);
+    this.stompClient = Stomp.over(socket);
+
+    return new Promise((resolve, reject) => {
+      this.stompClient.connect(
+        {},
+        frame => resolve(/(([a-z]|[0-9]){1,})(\/websocket)/.exec(socket['_transport'].url)[1]),
+        err => reject(err)
+      );
+    });
+  }
+
+  async joinUser(username: string, sessionId: string): Promise<any> {
+    return new Promise((resolve, reject) => {
+      this.stompClient.subscribe('/socket/join', (message) => {
+        const body = JSON.parse(message.body);
+        if (body.user.sessionId === sessionId) {
+          resolve(body.user);
+        }
+        // TODO: handle errors: JSON.parse, body object does not contain user field
+      });
+      this.stompClient.send('/api/join', {}, username);
+    });
+  }
+
 }

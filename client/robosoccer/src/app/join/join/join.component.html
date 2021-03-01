@@ -1,0 +1,17 @@
+<div class="container h-100">
+    <div class="row h-100 justify-content-md-center">
+        <div class="col-md-4 text-center my-auto">
+            <img src="assets/logo.png" alt="Soccer ball" class="logo-img">
+            <h4>Robosoccer - Join the game</h4>
+            <hr>
+            <div *ngIf="errorMessage" class="alert alert-danger" role="alert">{{ errorMessage }}</div>
+            <form>
+                <div class="form-group">
+                    <input type="text" class="form-control" id="name" [formControl]="username" placeholder="Username">
+                    <small *ngIf="username.dirty && !username.valid" class="text-danger ">Username is required.</small>
+                </div>
+                <input type="submit" value="Join" class="btn btn-primary" [disabled]="!username.valid" (click)="joinUser()">
+            </form>
+        </div>
+    </div>
+</div>
