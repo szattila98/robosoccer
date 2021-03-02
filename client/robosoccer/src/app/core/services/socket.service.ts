@@ -10,23 +10,53 @@ export class SocketService {
 
   stompClient: CompatClient = null;
 
-  constructor() {
-    this.initializeConnection();
-  }
+  constructor() { }
 
-  private initializeConnection(): void {
-    if (this.stompClient !== null) {
-      return;
+  get connected(): boolean {
+    if (!this.stompClient) {
+      return false;
     }
 
-    this.stompClient = Stomp.over(() => new SockJS(environment.socketBaseUrl));
-    this.stompClient.connect({}, (frame) => {
-      this.stompClient.subscribe('/socket/game', (msg) => {
-        console.log('MSG', msg);
-        // TODO: join, receive data
-        // this.stompClient.send('/api/join', {}, 'asd');
-      });
-    });
-
+    return this.stompClient.connected;
   }
+
+  connect(): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const socket = new SockJS(environment.socketBaseUrl);
+      this.stompClient = Stomp.over(socket);
+      this.stompClient.connect(
+        {},
+        // tslint:disable-next-line: no-string-literal
+        frame => resolve(/(([a-z]|[0-9]){1,})(\/websocket)/.exec(socket['_transport'].url)[1]),
+        err => reject(err),
+        close => reject(new Error('Cannot connect to server'))
+      );
+    });
+  }
+
+  async joinUser(username: string, sessionId: string): Promise<any> {
+    return new Promise((resolve, reject) => {
+      if (!this.connected) {
+        return reject(new Error('Can not connect to the server.'));
+      }
+
+      const joinSubscription = this.stompClient.subscribe('/socket/join', (message) => {
+        let body;
+
+        try {
+          body = JSON.parse(message.body);
+        } catch (err) {
+          return reject(new Error('Server response can not be interpreted.'));
+        }
+
+        if (body && body.user && body.user.sessionId === sessionId) {
+          joinSubscription.unsubscribe();
+          resolve(body.user);
+        }
+      });
+
+      this.stompClient.send('/api/join', {}, username);
+    });
+  }
+
 }

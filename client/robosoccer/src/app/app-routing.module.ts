@@ -4,6 +4,10 @@ import { environment } from 'src/environments/environment';
 
 const routes: Routes = [
   {
+    path: 'join',
+    loadChildren: () => import('./join/join.module').then(m => m.JoinModule)
+  },
+  {
     path: '',
     loadChildren: () => import('./match/match.module').then(m => m.MatchModule)
   }
