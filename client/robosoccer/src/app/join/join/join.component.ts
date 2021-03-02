@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { FormControl, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { SessionStorageService } from 'src/app/core/services/session-storage.service';
@@ -9,7 +9,7 @@ import { SocketService } from 'src/app/core/services/socket.service';
   templateUrl: './join.component.html',
   styleUrls: ['./join.component.css']
 })
-export class JoinComponent implements OnInit {
+export class JoinComponent {
 
   username: FormControl = new FormControl('', [Validators.required]);
   errorMessage: string;
@@ -18,12 +18,6 @@ export class JoinComponent implements OnInit {
     private socketService: SocketService,
     private sessionStorageService: SessionStorageService,
     private router: Router) { }
-
-  async ngOnInit () {
-    if (this.socketService.connected) {
-      return;
-    }
-  }
 
   async joinUser(): Promise<any> {
     this.errorMessage = '';
@@ -34,8 +28,7 @@ export class JoinComponent implements OnInit {
       this.router.navigateByUrl('/');
     } catch (err) {
       console.error(err);
-      // TODO: unbox error message from err object
-      this.errorMessage = err;
+      this.errorMessage = err.message;
     }
   }
 
