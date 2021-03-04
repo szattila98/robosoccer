@@ -7,3 +7,24 @@ canvas {
     background-color: #00a000;
 }
 
+.team-name {
+    font-weight: bold;
+    color: #ffffff;
+    font-size: larger;
+}
+
+.result {
+    font-weight: bold;
+    color: #ffffff;
+    font-size: xx-large;
+}
+
+.info-heading {
+    font-weight: bold;
+    color: #ffffff;
+}
+
+.spinner-border {
+    height: 1.2em;
+    width: 1.2em;
+}
