@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { CompatClient, Stomp } from '@stomp/stompjs';
+import { CompatClient, messageCallbackType, Stomp, StompSubscription } from '@stomp/stompjs';
 import * as SockJS from 'sockjs-client';
 import { environment } from 'src/environments/environment';
 
@@ -59,4 +59,19 @@ export class SocketService {
     });
   }
 
+  subscribeToGame(callback: messageCallbackType): StompSubscription {
+    if (!this.connected) {
+      throw new Error('Cannot connect to server');
+    }
+
+    return this.stompClient.subscribe('/socket/game', callback);
+  }
+
+  sendReadyState(): void {
+    if (!this.connected) {
+      throw new Error('Cannot connect to server');
+    }
+
+    this.stompClient.send('/api/ready');
+  }
 }
