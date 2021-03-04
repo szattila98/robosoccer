@@ -49,7 +49,7 @@ public class GameServiceImpl implements GameService {
     @Override
     public void movePlayer(String sessionId, int playerId, Position destination) throws NoSuchUserException, PlayerNotFoundException {
         Player player = Match.getInstance().getJoinedUser(sessionId).getPlayerById(playerId);
-        player.calculatePositions(player.getPosition(), destination);
+        player.plotPositionsToMoveTo(player.getPosition(), destination);
     }
 
     /**

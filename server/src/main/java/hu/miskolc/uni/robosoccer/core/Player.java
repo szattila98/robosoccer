@@ -22,31 +22,24 @@ public class Player extends Movable {
         this.id = id;
     }
 
-    /**
-     * Calculates positions between the given two positions and stores them in start queue for processing (queue is cleared before storage).
-     * Uses Bresenham’s line algorithm.
-     *
-     * @param start the starting position
-     * @param end   the end position
-     */
     @Override
-    public void calculatePositions(Position start, Position end) {
-        // TODO calculation not correct, x is fine but it disregards y and runs over it
-        double degreeOfDetail = 0.25; // makes movement slower of faster
-        double deltaX = end.getX() - start.getX();
-        double deltaY = end.getY() - start.getY();
-        double deltaErr = Math.abs(deltaY / deltaX);
-        double error = 0.0;
-        double y = start.getY();
+    public void plotPositionsToMoveTo(Position start, Position end) {
         this.positionsToMoveTo.clear();
-        for (double x = start.getX(); x < end.getX(); x += degreeOfDetail) {
-            this.positionsToMoveTo.add(new Position(x, y));
-            error = error + deltaErr;
-            if (error >= 0.5) {
-                y = y + Math.signum(deltaY);
-                error = error - 1.0;
+        double slope = ((end.getY() - start.getY()) / (end.getX() - start.getX()));
+        if (start.getX() < end.getX()) {
+            for (double x = start.getX(); x <= end.getX(); x += STEP) {
+                Position newPosition = new Position(x, this.pointSlope(start, slope, x));
+                this.positionsToMoveTo.add(newPosition);
+            }
+        } else {
+            for (double x = start.getX(); x >= end.getX(); x -= STEP) {
+                Position newPosition = new Position(x, this.pointSlope(start, slope, x));
+                this.positionsToMoveTo.add(newPosition);
             }
         }
-        // this.positionsToMoveTo.add(end); - uncomment when it is correctly calculating, as it leaves out the destination position
+    }
+
+    private double pointSlope(Position point, double slope, double x) {
+        return slope * (x - point.getX()) + point.getY();
     }
 }

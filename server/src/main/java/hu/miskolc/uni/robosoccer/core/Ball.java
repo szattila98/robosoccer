@@ -29,7 +29,7 @@ public class Ball extends Movable {
     }
 
     @Override
-    void calculatePositions(Position start, Position end) {
+    public void plotPositionsToMoveTo(Position start, Position end) {
         // TODO implement with force of kick
     }
 }

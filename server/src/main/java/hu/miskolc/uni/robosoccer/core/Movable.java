@@ -19,6 +19,8 @@ import java.util.Queue;
 @EqualsAndHashCode
 public abstract class Movable {
 
+    protected static final double STEP = 0.1;
+
     protected final Position position;
     @JsonIgnore
     protected final Queue<Position> positionsToMoveTo;
@@ -35,5 +37,11 @@ public abstract class Movable {
         }
     }
 
-    abstract void calculatePositions(Position start, Position end);
+    /**
+     * Calculates positions between the given two positions and stores them in start queue for processing (queue is cleared before storage).
+     *
+     * @param start the starting position
+     * @param end   the end position
+     */
+    protected abstract void plotPositionsToMoveTo(Position start, Position end);
 }
