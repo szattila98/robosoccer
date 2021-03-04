@@ -23,7 +23,7 @@ public class Ball extends Movable {
     private Integer forceOfKick;
 
     public Ball() {
-        super(new Position(70, -50)); // center of the soccer pitch
+        super(new Position(70, 50)); // center of the soccer pitch
         this.playerId = null;
         this.forceOfKick = null;
     }

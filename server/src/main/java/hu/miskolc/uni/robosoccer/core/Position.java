@@ -26,6 +26,6 @@ public class Position {
     }
 
     public Position invert() {
-        return new Position(Match.PITCH_WIDTH - this.x, this.y);
+        return new Position(Match.PITCH_WIDTH - this.x, Match.PITCH_HEIGHT - this.y);
     }
 }
