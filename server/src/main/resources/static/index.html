@@ -55,6 +55,10 @@
             stompClient.send("/api/ready");
         }
 
+        function move(id, x, y) {
+            stompClient.send("/api/move", {}, JSON.stringify({playerId: id, destination: {x: x, y: y}}));
+        }
+
         function disconnect() {
             if (stompClient != null) {
                 stompClient.disconnect(function () {
@@ -98,6 +102,9 @@
             Disconnect
         </button>
         <button id="ready" onclick="toggleReady();" disabled="disabled">Toggle Ready</button>
+        <button id="move1" onclick="move(0, 100.0, 80.0);">Move goalkeeper to (100,80)</button>
+        <button id="move2" onclick="move(10, 60.0, 100.0);">Move last attacker to (60,100)</button>
+        <button id="move2" onclick="move(10, 40.0, 30.0);">Move last attacker to (40,30)</button>
     </div>
     <br/>
     <div id="conversationDiv">

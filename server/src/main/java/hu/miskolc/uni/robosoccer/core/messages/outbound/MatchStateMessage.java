@@ -1,4 +1,4 @@
-package hu.miskolc.uni.robosoccer.core.messages;
+package hu.miskolc.uni.robosoccer.core.messages.outbound;
 
 import hu.miskolc.uni.robosoccer.core.Match;
 import lombok.EqualsAndHashCode;

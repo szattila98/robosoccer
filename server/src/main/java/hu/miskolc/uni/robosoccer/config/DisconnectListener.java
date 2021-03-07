@@ -4,7 +4,7 @@ import hu.miskolc.uni.robosoccer.core.Match;
 import hu.miskolc.uni.robosoccer.core.User;
 import hu.miskolc.uni.robosoccer.core.enums.ConnectionType;
 import hu.miskolc.uni.robosoccer.core.exceptions.NoSuchUserException;
-import hu.miskolc.uni.robosoccer.core.messages.UserConnectionStateMessage;
+import hu.miskolc.uni.robosoccer.core.messages.outbound.UserConnectionStateMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;

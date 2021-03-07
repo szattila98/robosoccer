@@ -1,6 +1,8 @@
 package hu.miskolc.uni.robosoccer.core;
 
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
 /**
  * Represents the soccer players.
@@ -9,11 +11,17 @@ import lombok.*;
  * @author Attila Szőke
  */
 @Getter
-@AllArgsConstructor
 @ToString
-@EqualsAndHashCode
-public class Player {
+@EqualsAndHashCode(callSuper = false)
+public class Player extends Movable {
 
     private final int id;
-    private final Position position;
+
+    public Player(int id, Position startingPosition) {
+        super(startingPosition);
+        this.id = id;
+    }
+
+
+
 }

@@ -1,4 +1,4 @@
-package hu.miskolc.uni.robosoccer.core.messages;
+package hu.miskolc.uni.robosoccer.core.messages.outbound;
 
 import hu.miskolc.uni.robosoccer.core.User;
 import hu.miskolc.uni.robosoccer.core.enums.RoundStatusType;
