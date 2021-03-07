@@ -4,10 +4,8 @@ import hu.miskolc.uni.robosoccer.core.Match;
 import hu.miskolc.uni.robosoccer.core.User;
 import hu.miskolc.uni.robosoccer.core.enums.ConnectionType;
 import hu.miskolc.uni.robosoccer.core.enums.RoundStatusType;
-import hu.miskolc.uni.robosoccer.core.exceptions.MatchFullException;
-import hu.miskolc.uni.robosoccer.core.exceptions.MatchOngoingException;
-import hu.miskolc.uni.robosoccer.core.exceptions.NoSuchUserException;
-import hu.miskolc.uni.robosoccer.core.exceptions.PlayerNotFoundException;
+import hu.miskolc.uni.robosoccer.core.exceptions.*;
+import hu.miskolc.uni.robosoccer.core.messages.inbound.KickMessage;
 import hu.miskolc.uni.robosoccer.core.messages.inbound.MoveMessage;
 import hu.miskolc.uni.robosoccer.core.messages.outbound.MatchStateMessage;
 import hu.miskolc.uni.robosoccer.core.messages.outbound.UserConnectionStateMessage;
@@ -82,13 +80,23 @@ public class GameController {
 
     @MessageMapping("/move")
     public void move(SimpMessageHeaderAccessor sha, @Payload MoveMessage message) {
-        // TODO check whether game is ongoing or not
         try {
             service.movePlayer(sha.getSessionId(), message.getPlayerId(), message.getDestination());
         } catch (NoSuchUserException e) {
             log.error(e.getMessage() + " {}", sha.getSessionId());
         } catch (PlayerNotFoundException e) {
             log.error(e.getMessage() + " {}", message.getPlayerId());
+        } catch (MatchNotGoingException e) {
+            log.error(e.getMessage());
+        }
+    }
+
+    @MessageMapping("/kick")
+    public void kick(SimpMessageHeaderAccessor sha, @Payload KickMessage message) {
+        try {
+            service.kickBall(message.getDestination(), message.getForceOfKick());
+        } catch (MatchNotGoingException e) {
+            log.error(e.getMessage());
         }
     }
 

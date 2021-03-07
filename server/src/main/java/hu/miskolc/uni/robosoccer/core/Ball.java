@@ -20,7 +20,7 @@ public class Ball extends Movable {
 
     private Integer playerId; // null if no one has it
     @JsonIgnore
-    private Integer forceOfKick;
+    private Double forceOfKick;
 
     public Ball() {
         super(new Position(70, 50)); // center of the soccer pitch
@@ -30,6 +30,19 @@ public class Ball extends Movable {
 
     @Override
     public void plotPositionsToMoveTo(Position start, Position end) {
-        // TODO implement with force of kick
+        end = positionByKickForce(start, end);
+        super.plotPositionsToMoveTo(start, end);
     }
+
+    private Position positionByKickForce(Position start, Position end) {
+        double newX = end.getX() + round((end.getX() - start.getX())*forceOfKick, 1);
+        double newY = end.getY() + round((end.getY() - start.getY())*forceOfKick, 1);
+        return new Position(newX, newY);
+    }
+
+    private double round (double value, int precision) {
+        int scale = (int) Math.pow(10, precision);
+        return (double) Math.round(value * scale) / scale;
+    }
+
 }
