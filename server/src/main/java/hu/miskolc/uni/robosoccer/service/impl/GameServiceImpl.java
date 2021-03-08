@@ -58,6 +58,7 @@ public class GameServiceImpl implements GameService {
             throw new MatchNotGoingException();
         }
         Ball ball = Match.getInstance().getBall();
+        ball.setForceOfKick(kickForce);
         ball.plotPositionsToMoveTo(ball.getPosition(), direction);
     }
 
