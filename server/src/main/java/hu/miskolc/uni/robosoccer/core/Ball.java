@@ -18,13 +18,15 @@ import lombok.ToString;
 @EqualsAndHashCode(callSuper = false)
 public class Ball extends Movable {
 
-    private Integer playerId; // null if no one has it
+    private static final int AHEAD_OF_PLAYER_DISTANCE = 5;
+
+    private Player player; // null if no one has it
     @JsonIgnore
     private Double forceOfKick;
 
     public Ball() {
         super(new Position(70, 50)); // center of the soccer pitch
-        this.playerId = null;
+        this.player = null;
         this.forceOfKick = null;
     }
 
@@ -34,13 +36,28 @@ public class Ball extends Movable {
         super.plotPositionsToMoveTo(start, end);
     }
 
+    @Override
+    public void processMovement() {
+        if (player == null) {
+            super.processMovement();
+        } else {
+            moveInFrontOfPlayer();
+        }
+    }
+
+    private void moveInFrontOfPlayer() {
+        int aheadPositionIndex = this.player.getPositionsToMoveTo().indexOf(this.player.getPositionsToMoveTo().peek()) + AHEAD_OF_PLAYER_DISTANCE;
+        this.position.move(this.player.getPositionsToMoveTo().get(aheadPositionIndex));
+    }
+
     private Position positionByKickForce(Position start, Position end) {
-        double newX = end.getX() + round((end.getX() - start.getX())*forceOfKick, 1);
-        double newY = end.getY() + round((end.getY() - start.getY())*forceOfKick, 1);
+        double newX = end.getX() + round((end.getX() - start.getX()) * this.forceOfKick, 1);
+        double newY = end.getY() + round((end.getY() - start.getY()) * this.forceOfKick, 1);
+        this.forceOfKick = null;
         return new Position(newX, newY);
     }
 
-    private double round (double value, int precision) {
+    private double round(double value, int precision) {
         int scale = (int) Math.pow(10, precision);
         return (double) Math.round(value * scale) / scale;
     }

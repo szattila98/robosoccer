@@ -89,4 +89,17 @@ public class Match {
         this.users.forEach((user -> user.getTeam().forEach((Movable::processMovement))));
     }
 
+    public void checkForBallCaptureEvent() {
+        // TODO account for tackle
+        if (this.ball.getPlayer() == null) {
+            for (User user : this.users) {
+                for (Player player : user.getTeam()) {
+                    if (player.fallsInsidePlayerReach(this.ball.getPosition())) {
+                        this.ball.setPlayer(player);
+                    }
+                }
+            }
+        }
+    }
+
 }

@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.ToString;
 
 import java.util.LinkedList;
-import java.util.Queue;
 
 /**
  * Represents and object that can be moved.
@@ -23,7 +22,7 @@ public abstract class Movable {
 
     protected final Position position;
     @JsonIgnore
-    protected final Queue<Position> positionsToMoveTo;
+    protected final LinkedList<Position> positionsToMoveTo;
 
     protected Movable(Position startingPosition) {
         this.position = startingPosition;

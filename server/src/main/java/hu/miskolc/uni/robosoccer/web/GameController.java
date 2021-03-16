@@ -104,6 +104,7 @@ public class GameController {
     public void sendMatchState() {
         if (Match.getInstance().getRoundStatus() == RoundStatusType.ONGOING) {
             Match.getInstance().processMovements();
+            Match.getInstance().checkForBallCaptureEvent();
             template.convertAndSend("/socket/game", new MatchStateMessage(Match.getInstance()));
             log.debug("Match state sent: {}", Match.getInstance());
         }
