@@ -5,6 +5,7 @@ import { Ball } from 'src/app/core/models/ball';
 import { Side } from 'src/app/core/models/enum/side';
 import { Match } from 'src/app/core/models/match';
 import { Player } from 'src/app/core/models/player';
+import { User } from 'src/app/core/models/user';
 import { SessionStorageService } from 'src/app/core/services/session-storage.service';
 import { SocketService } from 'src/app/core/services/socket.service';
 import { StrategyService } from '../strategy.service';
@@ -19,8 +20,6 @@ let PLAYER_RADIUS_PX = window.innerWidth > 1000 ? 10 : 7;
 const COLOR_BALL = 'red';
 const COLOR_LEFT_SIDE = 'purple';
 const COLOR_RIGHT_SIDE = 'orange';
-
-let TODO_MOVE_MESSAGE_SENT = false;
 
 @Component({
   selector: 'app-field',
@@ -39,6 +38,9 @@ export class FieldComponent implements AfterViewInit {
   socketSubscription: StompSubscription;
 
   match: Match;
+
+  _debug = true;
+  _selectedPlayer: Player;
 
   constructor(
     private router: Router,
@@ -117,23 +119,6 @@ export class FieldComponent implements AfterViewInit {
       const body = JSON.parse(message.body);
       this.match = body.match;
       this.updateField();
-      if (!TODO_MOVE_MESSAGE_SENT) {
-        this.socketService.sendMoveCommand({ playerId: 0, destination: { x: 100, y: 40} });
-        this.socketService.sendMoveCommand({ playerId: 1, destination: { x: 20, y: 0} });
-        this.socketService.sendMoveCommand({ playerId: 2, destination: { x: 50, y: 75} });
-        this.socketService.sendMoveCommand({ playerId: 3, destination: { x: 80, y: 75} });
-        this.socketService.sendMoveCommand({ playerId: 4, destination: { x: 0, y: 100} });
-        this.socketService.sendMoveCommand({ playerId: 5, destination: { x: 140, y: 0} });
-        this.socketService.sendMoveCommand({ playerId: 6, destination: { x: 140, y: 100} });
-        this.socketService.sendMoveCommand({ playerId: 7, destination: { x: 100, y: 40} });
-        this.socketService.sendMoveCommand({ playerId: 8, destination: { x: 20, y: 0} });
-        this.socketService.sendMoveCommand({ playerId: 9, destination: { x: 50, y: 75} });
-        this.socketService.sendMoveCommand({ playerId: 10, destination: { x: 80, y: 75} });
-        this.socketService.sendMoveCommand({ playerId: 11, destination: { x: 0, y: 100} });
-        this.socketService.sendMoveCommand({ playerId: 12, destination: { x: 140, y: 0} });
-        this.socketService.sendMoveCommand({ playerId: 13, destination: { x: 140, y: 100} });
-        TODO_MOVE_MESSAGE_SENT = true;
-      }
     } catch (err) {
       console.error(err);
       this.router.navigateByUrl('/error');
@@ -143,9 +128,82 @@ export class FieldComponent implements AfterViewInit {
   setCanvasSize(): void {
     BALL_RADIUS_PX = window.innerWidth > 1000 ? 7 : 5;
     PLAYER_RADIUS_PX = window.innerWidth > 1000 ? 10 : 7;
-    const FIELD_MARGIN_PX = Math.floor(window.innerWidth / 3);
+    const FIELD_MARGIN_PX = Math.floor(window.innerWidth / 2.5);
     this.canvas.nativeElement.width = window.innerWidth - FIELD_MARGIN_PX;
     this.canvas.nativeElement.height = Math.floor((window.innerWidth - FIELD_MARGIN_PX) / FIELD_IMG_RATIO);
+  }
+
+
+
+
+
+
+  //// Debug functions
+
+  _getFieldPointX(canvasX: number) {
+    const rect = this.canvas.nativeElement.getBoundingClientRect();
+    canvasX -= rect.left;
+    return canvasX / this.canvasWidth * FIELD_X_MAX;
+  }
+
+  _getFieldPointY(canvasY: number) {
+    const rect = this.canvas.nativeElement.getBoundingClientRect();
+    canvasY -= rect.top;
+    return canvasY / this.canvasHeight * FIELD_Y_MAX;
+  }
+
+  _getUserBySide(side: Side): User {
+    for (const user of this.match.users) {
+      if (user.side === side) {
+        return user;
+      }
+    }
+  }
+
+  _getNearestPlayer(clickX: number, clickY: number) {
+    const side = this.sessionStorageService.getSession().side;
+    const user = this._getUserBySide(side);
+    const distances: { player: Player, distance: number }[] = [];
+
+    for (const player of user.team) {
+      distances.push({
+        player,
+        distance: Math.sqrt(
+          Math.pow(player.position.x - this._getFieldPointX(clickX), 2)
+          + Math.pow(player.position.y - this._getFieldPointY(clickY), 2))
+      });
+    }
+
+    distances.sort((a, b) => a.distance - b.distance);
+    console.log(distances);
+    return distances[0].player;
+  }
+
+  _handleCanvasClick(event) {
+    const canvasX = event.clientX;
+    const canvasY = event.clientY;
+
+    if (!this._selectedPlayer) {
+      this._selectedPlayer = this._getNearestPlayer(canvasX, canvasY);
+      return;
+    }
+
+    this.socketService.sendMoveCommand({
+      playerId: this._selectedPlayer.id,
+      destination: {
+        x: this._getFieldPointX(canvasX),
+        y: this._getFieldPointY(canvasY)
+      }
+    });
+    this._selectedPlayer = null;
+  }
+
+  _handleKick() {
+    const side = this.sessionStorageService.getSession().side;
+    this.socketService.sendKickCommand({
+      destination: side.toString() === Side[Side.LEFT] ? { x: 140, y: 50 } : { x: 0, y: 50 },
+      forceOfKick: 0.5
+    });
   }
 
 }
