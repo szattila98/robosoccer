@@ -118,14 +118,20 @@ export class FieldComponent implements AfterViewInit {
       this.match = body.match;
       this.updateField();
       if (!TODO_MOVE_MESSAGE_SENT) {
-        this.socketService.sendMoveCommand({ playerId: 0, destination: { x: 140, y: 50} });
+        this.socketService.sendMoveCommand({ playerId: 0, destination: { x: 100, y: 40} });
         this.socketService.sendMoveCommand({ playerId: 1, destination: { x: 20, y: 0} });
         this.socketService.sendMoveCommand({ playerId: 2, destination: { x: 50, y: 75} });
-        this.socketService.sendMoveCommand({ playerId: 3, destination: { x: 70, y: 50} });
+        this.socketService.sendMoveCommand({ playerId: 3, destination: { x: 80, y: 75} });
         this.socketService.sendMoveCommand({ playerId: 4, destination: { x: 0, y: 100} });
         this.socketService.sendMoveCommand({ playerId: 5, destination: { x: 140, y: 0} });
         this.socketService.sendMoveCommand({ playerId: 6, destination: { x: 140, y: 100} });
-
+        this.socketService.sendMoveCommand({ playerId: 7, destination: { x: 100, y: 40} });
+        this.socketService.sendMoveCommand({ playerId: 8, destination: { x: 20, y: 0} });
+        this.socketService.sendMoveCommand({ playerId: 9, destination: { x: 50, y: 75} });
+        this.socketService.sendMoveCommand({ playerId: 10, destination: { x: 80, y: 75} });
+        this.socketService.sendMoveCommand({ playerId: 11, destination: { x: 0, y: 100} });
+        this.socketService.sendMoveCommand({ playerId: 12, destination: { x: 140, y: 0} });
+        this.socketService.sendMoveCommand({ playerId: 13, destination: { x: 140, y: 100} });
         TODO_MOVE_MESSAGE_SENT = true;
       }
     } catch (err) {
