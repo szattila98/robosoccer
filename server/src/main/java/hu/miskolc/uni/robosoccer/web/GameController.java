@@ -76,6 +76,7 @@ public class GameController {
     public void move(SimpMessageHeaderAccessor sha, @Payload MoveMessage message) {
         try {
             service.movePlayer(sha.getSessionId(), message.getPlayerId(), message.getDestination());
+            log.info("Movement {} started!", message);
         } catch (NoSuchUserException e) {
             log.error(e.getMessage() + " {}", sha.getSessionId());
         } catch (PlayerNotFoundException e) {

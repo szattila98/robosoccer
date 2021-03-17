@@ -7,6 +7,7 @@ import { Match } from 'src/app/core/models/match';
 import { Player } from 'src/app/core/models/player';
 import { SessionStorageService } from 'src/app/core/services/session-storage.service';
 import { SocketService } from 'src/app/core/services/socket.service';
+import { StrategyService } from '../strategy.service';
 
 const FIELD_IMG_RATIO = 2873 / 1844;
 const FIELD_X_MAX = 140;
@@ -18,6 +19,8 @@ let PLAYER_RADIUS_PX = window.innerWidth > 1000 ? 10 : 7;
 const COLOR_BALL = 'red';
 const COLOR_LEFT_SIDE = 'purple';
 const COLOR_RIGHT_SIDE = 'orange';
+
+let TODO_MOVE_MESSAGE_SENT = false;
 
 @Component({
   selector: 'app-field',
@@ -40,7 +43,8 @@ export class FieldComponent implements AfterViewInit {
   constructor(
     private router: Router,
     private socketService: SocketService,
-    private sessionStorageService: SessionStorageService) { }
+    private sessionStorageService: SessionStorageService,
+    private strategyService: StrategyService) { }
 
   ngAfterViewInit(): void {
     this.setCanvasSize();
@@ -113,6 +117,17 @@ export class FieldComponent implements AfterViewInit {
       const body = JSON.parse(message.body);
       this.match = body.match;
       this.updateField();
+      if (!TODO_MOVE_MESSAGE_SENT) {
+        this.socketService.sendMoveCommand({ playerId: 0, destination: { x: 140, y: 50} });
+        this.socketService.sendMoveCommand({ playerId: 1, destination: { x: 20, y: 0} });
+        this.socketService.sendMoveCommand({ playerId: 2, destination: { x: 50, y: 75} });
+        this.socketService.sendMoveCommand({ playerId: 3, destination: { x: 70, y: 50} });
+        this.socketService.sendMoveCommand({ playerId: 4, destination: { x: 0, y: 100} });
+        this.socketService.sendMoveCommand({ playerId: 5, destination: { x: 140, y: 0} });
+        this.socketService.sendMoveCommand({ playerId: 6, destination: { x: 140, y: 100} });
+
+        TODO_MOVE_MESSAGE_SENT = true;
+      }
     } catch (err) {
       console.error(err);
       this.router.navigateByUrl('/error');

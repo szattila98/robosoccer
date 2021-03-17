@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { CompatClient, messageCallbackType, Stomp, StompSubscription } from '@stomp/stompjs';
 import * as SockJS from 'sockjs-client';
 import { environment } from 'src/environments/environment';
+import { MoveCommand } from '../models/command/move';
 
 @Injectable({
   providedIn: 'root'
@@ -73,5 +74,13 @@ export class SocketService {
     }
 
     this.stompClient.send('/api/ready');
+  }
+
+  sendMoveCommand(command: MoveCommand): void {
+    if (!this.connected) {
+      throw new Error('Cannot connect to server');
+    }
+
+    this.stompClient.send('/api/move', {}, JSON.stringify(command));
   }
 }
