@@ -42,6 +42,7 @@ public abstract class Movable {
      * @param start the starting position
      * @param end   the end position
      */
+    // FIXME vertical movement is too fast
     public void plotPositionsToMoveTo(Position start, Position end) {
         this.positionsToMoveTo.clear();
         double slope;

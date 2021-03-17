@@ -1,5 +1,6 @@
 package hu.miskolc.uni.robosoccer.core;
 
+import hu.miskolc.uni.robosoccer.core.enums.SideType;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -17,11 +18,13 @@ public class Player extends Movable {
 
     private final int id;
     private final int radius;
+    private final SideType side;
 
-    public Player(int id, Position startingPosition) {
+    public Player(int id, Position startingPosition, SideType side) {
         super(startingPosition);
         this.id = id;
         this.radius = 1;
+        this.side = side;
     }
 
     public boolean fallsInsidePlayerReach(Position otherPosition) {
