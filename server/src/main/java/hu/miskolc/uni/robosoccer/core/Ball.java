@@ -18,7 +18,7 @@ import lombok.ToString;
 @EqualsAndHashCode(callSuper = false)
 public class Ball extends Movable {
 
-    private static final int AHEAD_OF_PLAYER_DISTANCE = 5;
+    private static final int AHEAD_OF_PLAYER_DISTANCE = 2;
 
     private Player player; // null if no one has it
     @JsonIgnore
@@ -46,8 +46,13 @@ public class Ball extends Movable {
     }
 
     private void moveInFrontOfPlayer() {
-        int aheadPositionIndex = this.player.getPositionsToMoveTo().indexOf(this.player.getPositionsToMoveTo().peek()) + AHEAD_OF_PLAYER_DISTANCE;
-        this.position.move(this.player.getPositionsToMoveTo().get(aheadPositionIndex));
+        // TODO make it more sophisticated if needed after testing, ball should be always ahead of player etc.
+        Position ballPosition = this.player.getPositionsToMoveTo().peek();
+        if (ballPosition == null) {
+            this.position.move(new Position(player.getPosition().getX() + AHEAD_OF_PLAYER_DISTANCE, player.getPosition().getY() + AHEAD_OF_PLAYER_DISTANCE));
+        } else {
+            this.position.move(new Position(ballPosition.getX() + AHEAD_OF_PLAYER_DISTANCE, ballPosition.getY() + AHEAD_OF_PLAYER_DISTANCE));
+        }
     }
 
     private Position positionByKickForce(Position start, Position end) {
