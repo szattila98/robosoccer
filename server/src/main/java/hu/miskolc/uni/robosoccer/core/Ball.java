@@ -56,8 +56,8 @@ public class Ball extends Movable {
     }
 
     private Position positionByKickForce(Position start, Position end) {
-        double newX = end.getX() + round((end.getX() - start.getX()) * this.forceOfKick, 1);
-        double newY = end.getY() + round((end.getY() - start.getY()) * this.forceOfKick, 1);
+        double newX = start.getX() + round((end.getX() - start.getX()) * this.forceOfKick, 1);
+        double newY = start.getY() + round((end.getY() - start.getY()) * this.forceOfKick, 1);
         this.forceOfKick = null;
         return new Position(newX, newY);
     }
