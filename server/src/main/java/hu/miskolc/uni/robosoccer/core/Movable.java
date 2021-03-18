@@ -18,7 +18,7 @@ import java.util.LinkedList;
 @EqualsAndHashCode
 public abstract class Movable {
 
-    protected static final double STEP = 0.1;
+    private static final double SPEED = 0.7;
 
     protected final Position position;
     @JsonIgnore
@@ -42,39 +42,17 @@ public abstract class Movable {
      * @param start the starting position
      * @param end   the end position
      */
-    // FIXME vertical movement is too fast
     public void plotPositionsToMoveTo(Position start, Position end) {
         this.positionsToMoveTo.clear();
-        double slope;
-        if (end.getX() != start.getX()) { // slope is normal
-            slope = ((end.getY() - start.getY()) / (end.getX() - start.getX()));
-            if (start.getX() < end.getX()) {
-                for (double x = start.getX(); x <= end.getX(); x += STEP) {
-                    Position newPosition = new Position(x, this.pointSlope(start, slope, x));
-                    this.positionsToMoveTo.add(newPosition);
-                }
-            } else {
-                for (double x = start.getX(); x >= end.getX(); x -= STEP) {
-                    Position newPosition = new Position(x, this.pointSlope(start, slope, x));
-                    this.positionsToMoveTo.add(newPosition);
-                }
-            }
-        } else { // there is no slope as the movement is vertical
-            if (start.getY() < end.getY()) {
-                for (double y = start.getY(); y <= end.getY(); y += STEP) {
-                    Position newPosition = new Position(start.getX(), y);
-                    this.positionsToMoveTo.add(newPosition);
-                }
-            } else {
-                for (double y = start.getY(); y >= end.getY(); y -= STEP) {
-                    Position newPosition = new Position(start.getX(), y);
-                    this.positionsToMoveTo.add(newPosition);
-                }
-            }
+        double distance = Math.sqrt(Math.pow(end.getX() - start.getX(), 2) + Math.pow(end.getY() - start.getY(), 2));
+        Position vector = start.toNormalizedDirectionVector(end);
+        for (double i = 0; i < distance; i += SPEED) {
+            Position newPosition = vector.multiplyByScalar(i).plus(this.position);
+            this.positionsToMoveTo.add(newPosition);
         }
     }
 
-    protected double pointSlope(Position point, double slope, double x) {
+    private double pointSlope(Position point, double slope, double x) {
         return slope * (x - point.getX()) + point.getY();
     }
 

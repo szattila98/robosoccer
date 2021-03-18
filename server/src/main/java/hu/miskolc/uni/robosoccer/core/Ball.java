@@ -18,7 +18,7 @@ import lombok.ToString;
 @EqualsAndHashCode(callSuper = false)
 public class Ball extends Movable {
 
-    private static final double AHEAD_OF_PLAYER_DISTANCE = 3;
+    private static final double AHEAD_OF_PLAYER_DISTANCE = 3.5;
 
     private Player player; // null if no one has it
     @JsonIgnore
@@ -53,7 +53,6 @@ public class Ball extends Movable {
             Position ballPosition = vector.multiplyByScalar(AHEAD_OF_PLAYER_DISTANCE).plus(playerPosition);
             this.position.move(ballPosition);
         }
-
     }
 
     private Position positionByKickForce(Position start, Position end) {

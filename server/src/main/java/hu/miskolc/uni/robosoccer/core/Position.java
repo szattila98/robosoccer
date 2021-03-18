@@ -31,7 +31,7 @@ public class Position {
 
     public Position toNormalizedDirectionVector(Position nextPosition) {
         Position directionVector = new Position(nextPosition.x - this.x, nextPosition.y - this.y);
-        double length = Math.sqrt(Math.pow(directionVector.getX(), 2) + Math.pow(directionVector.y, 2));
+        double length = Math.sqrt(Math.pow(directionVector.x, 2) + Math.pow(directionVector.y, 2));
         return new Position(directionVector.x / length, directionVector.y / length);
     }
 
