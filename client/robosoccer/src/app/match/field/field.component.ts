@@ -41,6 +41,7 @@ export class FieldComponent implements AfterViewInit {
 
   _debug = true;
   _selectedPlayer: Player;
+  _clickTimer;
 
   constructor(
     private router: Router,
@@ -175,11 +176,10 @@ export class FieldComponent implements AfterViewInit {
     }
 
     distances.sort((a, b) => a.distance - b.distance);
-    console.log(distances);
     return distances[0].player;
   }
 
-  _handleCanvasClick(event) {
+  _handleSingleClick(event) {
     const canvasX = event.clientX;
     const canvasY = event.clientY;
 
@@ -198,12 +198,27 @@ export class FieldComponent implements AfterViewInit {
     this._selectedPlayer = null;
   }
 
-  _handleKick() {
-    const side = this.sessionStorageService.getSession().side;
+  _handleKick(x: number, y: number) {
     this.socketService.sendKickCommand({
-      destination: side.toString() === Side[Side.LEFT] ? { x: 140, y: 50 } : { x: 0, y: 50 },
-      forceOfKick: 0.5
+      destination: { x, y },
+      forceOfKick: 1.0
     });
   }
+
+  _handleDoubleClick(event) {
+    clearTimeout(this._clickTimer);
+    const x = this._getFieldPointX(event.clientX);
+    const y = this._getFieldPointY(event.clientY);
+    this._handleKick(x, y);
+  }
+
+  _handleClick(event) {
+    if (event.detail === 1) {
+      this._clickTimer = setTimeout(() => {
+        this._handleSingleClick(event);
+      }, 200);
+    }
+  }
+
 
 }

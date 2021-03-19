@@ -25,18 +25,23 @@
             </div>
             <div class="row">
                 <div class="col-md-12 text-center">
-                    <canvas #football_field (click)="_handleCanvasClick($event)"></canvas>
+                    <canvas #football_field (click)="_handleClick($event)"
+                        (dblclick)="_handleDoubleClick($event)"></canvas>
                 </div>
             </div>
             <div class="row" *ngIf="_debug">
                 <div class="col-12 text-center">
-                    <h4 class="text-light">Debug tools</h4>
-                </div>
-                <div class="col-12 text-center" *ngIf="_selectedPlayer">
-                    Kiválasztva: {{ 'Player ' + _selectedPlayer.id }}
+                    <h5 class="text-light">Debug information</h5>
+                    <hr>
                 </div>
                 <div class="col-12 text-center">
-                    <button class="btn btn-danger" (click)="_handleKick()">Kick</button>
+                    Selected player: {{ _selectedPlayer?.side }} {{ _selectedPlayer?.id }}
+                </div>
+                <div class="col-12 text-center">
+                    Ball: ({{ match?.ball?.position.x.toFixed(4) }}, {{ match?.ball?.position.y.toFixed(4) }})
+                </div>
+                <div class="col-12 text-center">
+                    Ball owner: {{ match?.ball?.player.side }} {{ match?.ball?.player.id }} 
                 </div>
             </div>
         </div>
