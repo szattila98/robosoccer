@@ -90,9 +90,8 @@ public class Match {
     }
 
     public void checkForBallCaptureEvent() {
-        // TODO account for tackle
-        if (this.ball.getPlayer() == null) {
-            for (User user : this.users) {
+        for (User user : this.users) {
+            if (this.ball.getPlayer() == null || this.ball.getPlayer().getSide() != user.getSide()) {
                 for (Player player : user.getTeam()) {
                     if (player.fallsInsidePlayerReach(this.ball.getPosition())) {
                         this.ball.setPlayer(player);
