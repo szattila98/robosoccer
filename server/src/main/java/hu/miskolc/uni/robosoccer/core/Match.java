@@ -102,4 +102,8 @@ public class Match {
         }
     }
 
+    public boolean checkIfUserTeamHasBall(String sessionId) throws NoSuchUserException {
+        return this.getJoinedUser(sessionId).getSide() == this.ball.getPlayer().getSide();
+    }
+
 }

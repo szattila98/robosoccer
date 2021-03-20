@@ -94,8 +94,8 @@ public class GameController {
     @MessageMapping("/kick")
     public void kick(SimpMessageHeaderAccessor sha, @Payload KickMessage message) {
         try {
-            service.kickBall(message.getDestination(), message.getForceOfKick());
-        } catch (MatchNotGoingException e) {
+            service.kickBall(message.getDestination(), message.getForceOfKick(), sha.getSessionId());
+        } catch (MatchNotGoingException | NoSuchUserException | KickNotAllowedException e) {
             log.error(e.getMessage());
         }
     }

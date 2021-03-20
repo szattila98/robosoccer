@@ -45,6 +45,6 @@ public interface GameService {
      * @param direction the direction, a position at the edge of the pitch
      * @param kickForce force of the kick
      */
-    void kickBall(Position direction, double kickForce) throws MatchNotGoingException;
+    void kickBall(Position direction, double kickForce, String sessionId) throws MatchNotGoingException, NoSuchUserException, KickNotAllowedException;
 
 }

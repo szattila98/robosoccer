@@ -42,7 +42,7 @@ public class GameServiceImpl implements GameService {
      */
     @Override
     public void movePlayer(String sessionId, int playerId, Position destination) throws NoSuchUserException, PlayerNotFoundException, MatchNotGoingException {
-        if(Match.getInstance().getRoundStatus() == RoundStatusType.PENDING) {
+        if (Match.getInstance().getRoundStatus() == RoundStatusType.PENDING) {
             throw new MatchNotGoingException();
         }
         // TODO check if destination is inside the pitch, if not make it so it is inside at the sideline
@@ -54,13 +54,15 @@ public class GameServiceImpl implements GameService {
      * {@inheritDoc}
      */
     @Override
-    public void kickBall(Position direction, double kickForce) throws MatchNotGoingException {
+    public void kickBall(Position direction, double kickForce, String sessionId) throws MatchNotGoingException, NoSuchUserException, KickNotAllowedException {
         if (Match.getInstance().getRoundStatus() == RoundStatusType.PENDING) {
             throw new MatchNotGoingException();
         }
-        // TODO check whether the player of the user who ordered the kick has the ball
-        // TODO check if position is a valid point at the pitch sideline
         Ball ball = Match.getInstance().getBall();
+        if (ball.getPlayer() == null || !Match.getInstance().checkIfUserTeamHasBall(sessionId)) {
+            throw new KickNotAllowedException();
+        }
+        // TODO check if position is a valid point at the pitch sideline -> has no meaning if kick changes
         ball.setPlayer(null);
         ball.setForceOfKick(kickForce);
         ball.plotPositionsToMoveTo(ball.getPosition(), direction);
