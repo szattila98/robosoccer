@@ -42,4 +42,15 @@ public class Position {
     public Position plus(Position position) {
         return new Position(this.x + position.x, this.y + position.y);
     }
+
+    public boolean validatePosition() {
+        if(x < Match.PITCH_WIDTH || x > Match.PITCH_WIDTH) {
+            return false;
+        }
+        else if(y < Match.PITCH_HEIGHT || y > Match.PITCH_HEIGHT) {
+            return false;
+        }
+        else return true;
+    }
+
 }

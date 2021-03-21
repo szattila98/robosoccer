@@ -32,8 +32,13 @@ public class Ball extends Movable {
 
     @Override
     public void plotPositionsToMoveTo(Position start, Position end) {
-        end = positionByKickForce(start, end);
-        super.plotPositionsToMoveTo(start, end);
+        this.positionsToMoveTo.clear();
+        double distance = (Math.sqrt(Math.pow(end.getX() - start.getX(), 2) + Math.pow(end.getY() - start.getY(), 2)))*forceOfKick;
+        Position vector = start.toNormalizedDirectionVector(end);
+        for (double i = 0; i < distance; i += (Movable.SPEED)*forceOfKick) {
+            Position newPosition = vector.multiplyByScalar(i).plus(this.position);
+            this.positionsToMoveTo.add(newPosition);
+        }
     }
 
     @Override
@@ -56,9 +61,9 @@ public class Ball extends Movable {
     }
 
     private Position positionByKickForce(Position start, Position end) {
-        double newX = start.getX() + round((end.getX() - start.getX()) * this.forceOfKick, 1);
-        double newY = start.getY() + round((end.getY() - start.getY()) * this.forceOfKick, 1);
-        this.forceOfKick = null;
+        double newX = start.getX() + round((end.getX() - start.getX()) * forceOfKick, 1);
+        double newY = start.getY() + round((end.getY() - start.getY()) * forceOfKick, 1);
+        forceOfKick = null;
         return new Position(newX, newY);
     }
 
