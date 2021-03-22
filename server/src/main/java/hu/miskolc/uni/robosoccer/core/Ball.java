@@ -51,8 +51,10 @@ public class Ball extends Movable {
         if (player == null) {
             if (!this.positionsToMoveTo.isEmpty()) {
                 Position newPosition = this.getPositionsToMoveTo().remove();
-                checkGoal(newPosition);
-                this.position.move(newPosition);
+                if(!Match.getInstance().checkGoal(newPosition)) {
+                    this.position.move(newPosition);
+                }
+                //this.position.move(newPosition);
             }
         } else {
             moveInFrontOfPlayer();
@@ -66,25 +68,6 @@ public class Ball extends Movable {
             Position vector = playerPosition.toNormalizedDirectionVector(playerNextPosition);
             Position ballPosition = vector.multiplyByScalar(AHEAD_OF_PLAYER_DISTANCE).plus(playerPosition);
             this.position.move(ballPosition);
-        }
-    }
-
-    private void checkGoal(Position position) {
-        if(position.getX() <= Match.GOAL_LINE  && position.getY() >= 30 && position.getY() <= 70) {
-            for(User u : Match.getInstance().getUsers()) {
-                if(u.getSide() == SideType.RIGHT) {
-                    u.incrementPoints();
-                    Match.getInstance().startNextRound();
-                }
-            }
-        }
-        else if(position.getX() >= Match.PITCH_WIDTH - Match.GOAL_LINE  && position.getY() >= 30 && position.getY() <= 70) {
-            for(User u : Match.getInstance().getUsers()) {
-                if(u.getSide() == SideType.LEFT){
-                    u.incrementPoints();
-                    Match.getInstance().startNextRound();
-                }
-            }
         }
     }
 

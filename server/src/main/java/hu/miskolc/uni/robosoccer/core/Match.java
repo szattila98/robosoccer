@@ -84,10 +84,10 @@ public class Match {
     public void startNextRound() {
         advanceRound();
         this.ball.recenterBall();
-        for(User u : Match.getInstance().getUsers()) {
+        for(User u : this.users) {
             u.fillTeam();
         }
-        System.out.println("X:" + Match.getInstance().getBall().getPosition().getX() + " Y:" + Match.getInstance().getBall().getPosition().getY());
+        System.out.println("X:" + this.ball.getPosition().getX() + " Y:" + this.ball.getPosition().getY());
     }
 
     public boolean canStartMatch() {
@@ -113,6 +113,28 @@ public class Match {
 
     public boolean checkIfUserTeamHasBall(String sessionId) throws NoSuchUserException {
         return this.getJoinedUser(sessionId).getSide() == this.ball.getPlayer().getSide();
+    }
+
+    public boolean checkGoal(Position position) {
+        if(position.getX() <= GOAL_LINE  && position.getY() >= 30 && position.getY() <= 70) {
+            for(User u : this.users) {
+                if(u.getSide() == SideType.RIGHT) {
+                    u.incrementPoints();
+                    startNextRound();
+                    return true;
+                }
+            }
+        }
+        else if(position.getX() >= PITCH_WIDTH - GOAL_LINE  && position.getY() >= 30 && position.getY() <= 70) {
+            for(User u : this.users) {
+                if(u.getSide() == SideType.LEFT){
+                    u.incrementPoints();
+                    startNextRound();
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
 }

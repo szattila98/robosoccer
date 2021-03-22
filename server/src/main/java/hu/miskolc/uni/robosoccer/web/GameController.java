@@ -107,6 +107,7 @@ public class GameController {
             Match.getInstance().checkForBallCaptureEvent();
             template.convertAndSend("/socket/game", new MatchStateMessage(Match.getInstance()));
             log.debug("Match state sent: {}", Match.getInstance());
+            System.out.println(Match.getInstance().getBall().getPosition());
         }
     }
 
