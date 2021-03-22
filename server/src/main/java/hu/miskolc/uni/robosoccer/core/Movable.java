@@ -60,10 +60,10 @@ public abstract class Movable {
     }
 
     public boolean validatePosition(Position position) {
-        if(position.getX() < Match.PITCH_WIDTH || position.getX() > Match.PITCH_WIDTH) {
+        if(position.getX() > Match.PITCH_WIDTH || position.getX() < 0) {
             return false;
         }
-        else if(position.getY() < Match.PITCH_HEIGHT || position.getY() > Match.PITCH_HEIGHT) {
+        else if(position.getY() > Match.PITCH_HEIGHT || position.getY() < 0) {
             return false;
         }
         else return true;
