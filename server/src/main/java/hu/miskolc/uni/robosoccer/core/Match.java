@@ -89,4 +89,20 @@ public class Match {
         this.users.forEach((user -> user.getTeam().forEach((Movable::processMovement))));
     }
 
+    public void checkForBallCaptureEvent() {
+        for (User user : this.users) {
+            if (this.ball.getPlayer() == null || this.ball.getPlayer().getSide() != user.getSide()) {
+                for (Player player : user.getTeam()) {
+                    if (player.fallsInsidePlayerReach(this.ball.getPosition())) {
+                        this.ball.setPlayer(player);
+                    }
+                }
+            }
+        }
+    }
+
+    public boolean checkIfUserTeamHasBall(String sessionId) throws NoSuchUserException {
+        return this.getJoinedUser(sessionId).getSide() == this.ball.getPlayer().getSide();
+    }
+
 }

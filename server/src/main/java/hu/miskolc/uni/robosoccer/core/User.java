@@ -51,11 +51,11 @@ public class User {
 
         if (this.side == SideType.LEFT) {
             for (int i = 0; i < positions.length; i++) {
-                this.team.add(new Player(i, positions[i]));
+                this.team.add(new Player(i, positions[i], this.side));
             }
         } else {
             for (int i = 0; i < positions.length; i++) {
-                this.team.add(new Player(i, positions[i].invert()));
+                this.team.add(new Player(i, positions[i].invert(), this.side));
             }
         }
 

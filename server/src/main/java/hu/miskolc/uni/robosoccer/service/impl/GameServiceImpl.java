@@ -42,9 +42,10 @@ public class GameServiceImpl implements GameService {
      */
     @Override
     public void movePlayer(String sessionId, int playerId, Position destination) throws NoSuchUserException, PlayerNotFoundException, MatchNotGoingException {
-        if(Match.getInstance().getRoundStatus() == RoundStatusType.PENDING) {
+        if (Match.getInstance().getRoundStatus() == RoundStatusType.PENDING) {
             throw new MatchNotGoingException();
         }
+
         Player player = Match.getInstance().getJoinedUser(sessionId).getPlayerById(playerId);
         player.plotPositionsToMoveTo(player.getPosition(), destination);
     }
@@ -53,11 +54,17 @@ public class GameServiceImpl implements GameService {
      * {@inheritDoc}
      */
     @Override
-    public void kickBall(Position direction, double kickForce) throws MatchNotGoingException {
-        if(Match.getInstance().getRoundStatus() == RoundStatusType.PENDING) {
+    public void kickBall(Position direction, double kickForce, String sessionId) throws MatchNotGoingException, NoSuchUserException, KickNotAllowedException {
+        if (Match.getInstance().getRoundStatus() == RoundStatusType.PENDING) {
             throw new MatchNotGoingException();
         }
         Ball ball = Match.getInstance().getBall();
+        if (ball.getPlayer() == null || !Match.getInstance().checkIfUserTeamHasBall(sessionId)) {
+            throw new KickNotAllowedException();
+        }
+
+        ball.setPlayer(null);
+        ball.setForceOfKick(kickForce);
         ball.plotPositionsToMoveTo(ball.getPosition(), direction);
     }
 

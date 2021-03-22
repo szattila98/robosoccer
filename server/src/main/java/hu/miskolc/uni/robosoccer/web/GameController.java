@@ -69,7 +69,7 @@ public class GameController {
         try {
             user = Match.getInstance().getJoinedUser(sha.getSessionId());
             service.toggleReady(user);
-            template.convertAndSend("/socket/game", new UserReadyStateMessage(user, user.isReady(), Match.getInstance().getRoundStatus()));
+            template.convertAndSend("/socket/ready", new UserReadyStateMessage(user, user.isReady(), Match.getInstance().getRoundStatus()));
             log.info("User {} toggled ready!", user);
         } catch (MatchOngoingException e) {
             log.warn(e.getMessage() + " {}", user);
@@ -94,8 +94,8 @@ public class GameController {
     @MessageMapping("/kick")
     public void kick(SimpMessageHeaderAccessor sha, @Payload KickMessage message) {
         try {
-            service.kickBall(message.getDestination(), message.getForceOfKick());
-        } catch (MatchNotGoingException e) {
+            service.kickBall(message.getDestination(), message.getForceOfKick(), sha.getSessionId());
+        } catch (MatchNotGoingException | NoSuchUserException | KickNotAllowedException e) {
             log.error(e.getMessage());
         }
     }
@@ -104,6 +104,7 @@ public class GameController {
     public void sendMatchState() {
         if (Match.getInstance().getRoundStatus() == RoundStatusType.ONGOING) {
             Match.getInstance().processMovements();
+            Match.getInstance().checkForBallCaptureEvent();
             template.convertAndSend("/socket/game", new MatchStateMessage(Match.getInstance()));
             log.debug("Match state sent: {}", Match.getInstance());
         }
