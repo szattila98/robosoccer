@@ -18,7 +18,7 @@ import java.util.LinkedList;
 @EqualsAndHashCode
 public abstract class Movable {
 
-    public static final double SPEED = 0.7;
+    private static final double SPEED = 0.7;
 
     protected final Position position;
     @JsonIgnore
@@ -48,7 +48,7 @@ public abstract class Movable {
         Position vector = start.toNormalizedDirectionVector(end);
         for (double i = 0; i < distance; i += SPEED) {
             Position newPosition = vector.multiplyByScalar(i).plus(this.position);
-            if(newPosition.getX() > 140 || newPosition.getX() < 0 || newPosition.getY() > 100 || newPosition.getY() < 0) {
+            if(!validatePosition(newPosition)) {
                 break;
             }
             this.positionsToMoveTo.add(newPosition);
@@ -57,6 +57,16 @@ public abstract class Movable {
 
     private double pointSlope(Position point, double slope, double x) {
         return slope * (x - point.getX()) + point.getY();
+    }
+
+    public boolean validatePosition(Position position) {
+        if(position.getX() < Match.PITCH_WIDTH || position.getX() > Match.PITCH_WIDTH) {
+            return false;
+        }
+        else if(position.getY() < Match.PITCH_HEIGHT || position.getY() > Match.PITCH_HEIGHT) {
+            return false;
+        }
+        else return true;
     }
 
 }

@@ -35,10 +35,14 @@ public class Ball extends Movable {
         this.positionsToMoveTo.clear();
         double distance = (Math.sqrt(Math.pow(end.getX() - start.getX(), 2) + Math.pow(end.getY() - start.getY(), 2)))*forceOfKick;
         Position vector = start.toNormalizedDirectionVector(end);
-        for (double i = 0; i < distance; i += (Movable.SPEED)*forceOfKick) {
+        for (double i = 0; i < distance; i += forceOfKick) {
             Position newPosition = vector.multiplyByScalar(i).plus(this.position);
+            if(!super.validatePosition(newPosition)) {
+                break;
+            }
             this.positionsToMoveTo.add(newPosition);
         }
+        forceOfKick = null;
     }
 
     @Override
