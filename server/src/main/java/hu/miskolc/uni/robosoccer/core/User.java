@@ -35,6 +35,7 @@ public class User {
     }
 
     public void fillTeam() {
+        this.team.clear();
         Position[] positions = new Position[]{  // soccer pitch is 140 * 100, (0,0) is at the upper left corner
                 new Position(10, 50),      // goalkeeper
                 new Position(20, 20),     // defenders

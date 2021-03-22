@@ -24,6 +24,7 @@ public class Match {
 
     public static final double PITCH_WIDTH = 140;
     public static final double PITCH_HEIGHT = 100;
+    public static final double GOAL_LINE = 4;
 
     private static Match instance;
 
@@ -78,6 +79,15 @@ public class Match {
         List<User> listWithConnectedUser = this.getUsers();
         instance = new Match();
         instance.getUsers().addAll(listWithConnectedUser);
+    }
+
+    public void startNextRound() {
+        advanceRound();
+        this.ball.recenterBall();
+        for(User u : Match.getInstance().getUsers()) {
+            u.fillTeam();
+        }
+        System.out.println("X:" + Match.getInstance().getBall().getPosition().getX() + " Y:" + Match.getInstance().getBall().getPosition().getY());
     }
 
     public boolean canStartMatch() {

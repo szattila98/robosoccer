@@ -1,6 +1,7 @@
 package hu.miskolc.uni.robosoccer.core;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import hu.miskolc.uni.robosoccer.core.enums.SideType;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -48,7 +49,11 @@ public class Ball extends Movable {
     @Override
     public void processMovement() {
         if (player == null) {
-            super.processMovement();
+            if (!this.positionsToMoveTo.isEmpty()) {
+                Position newPosition = this.getPositionsToMoveTo().remove();
+                checkGoal(newPosition);
+                this.position.move(newPosition);
+            }
         } else {
             moveInFrontOfPlayer();
         }
@@ -64,6 +69,32 @@ public class Ball extends Movable {
         }
     }
 
+    private void checkGoal(Position position) {
+        if(position.getX() <= Match.GOAL_LINE  && position.getY() >= 30 && position.getY() <= 70) {
+            for(User u : Match.getInstance().getUsers()) {
+                if(u.getSide() == SideType.RIGHT) {
+                    u.incrementPoints();
+                    Match.getInstance().startNextRound();
+                }
+            }
+        }
+        else if(position.getX() >= Match.PITCH_WIDTH - Match.GOAL_LINE  && position.getY() >= 30 && position.getY() <= 70) {
+            for(User u : Match.getInstance().getUsers()) {
+                if(u.getSide() == SideType.LEFT){
+                    u.incrementPoints();
+                    Match.getInstance().startNextRound();
+                }
+            }
+        }
+    }
+
+    public void recenterBall() {
+        this.positionsToMoveTo.clear();
+        this.forceOfKick = null;
+        this.position.move(new Position(70, 50));
+    }
+
+
     private Position positionByKickForce(Position start, Position end) {
         double newX = start.getX() + round((end.getX() - start.getX()) * forceOfKick, 1);
         double newY = start.getY() + round((end.getY() - start.getY()) * forceOfKick, 1);
@@ -75,5 +106,7 @@ public class Ball extends Movable {
         int scale = (int) Math.pow(10, precision);
         return (double) Math.round(value * scale) / scale;
     }
+
+
 
 }
