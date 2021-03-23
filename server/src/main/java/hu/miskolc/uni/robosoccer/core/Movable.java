@@ -24,11 +24,19 @@ public abstract class Movable {
     @JsonIgnore
     protected final LinkedList<Position> positionsToMoveTo;
 
+    /**
+     * Initializes a movable.
+     *
+     * @param startingPosition the starting position
+     */
     protected Movable(Position startingPosition) {
         this.position = startingPosition;
         this.positionsToMoveTo = new LinkedList<>();
     }
 
+    /**
+     * Moves th movable to its next position on its path.
+     */
     public void processMovement() {
         if (!this.positionsToMoveTo.isEmpty()) {
             Position newPosition = this.getPositionsToMoveTo().remove();
@@ -48,25 +56,25 @@ public abstract class Movable {
         Position vector = start.toNormalizedDirectionVector(end);
         for (double i = 0; i < distance; i += SPEED) {
             Position newPosition = vector.multiplyByScalar(i).plus(this.position);
-            if(!validatePosition(newPosition)) {
+            if (!validatePosition(newPosition)) {
                 break;
             }
             this.positionsToMoveTo.add(newPosition);
         }
     }
 
-    private double pointSlope(Position point, double slope, double x) {
-        return slope * (x - point.getX()) + point.getY();
-    }
-
+    /**
+     * Validates whether the position is within bounds.
+     *
+     * @param position position to validate
+     * @return boolean
+     */
     public boolean validatePosition(Position position) {
-        if(position.getX() > Match.PITCH_WIDTH || position.getX() < 0) {
+        if (position.getX() > Match.PITCH_WIDTH || position.getX() < 0) {
             return false;
-        }
-        else if(position.getY() > Match.PITCH_HEIGHT || position.getY() < 0) {
+        } else if (position.getY() > Match.PITCH_HEIGHT || position.getY() < 0) {
             return false;
-        }
-        else return true;
+        } else return true;
     }
 
 }

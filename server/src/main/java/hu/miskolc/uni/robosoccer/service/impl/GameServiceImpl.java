@@ -41,9 +41,9 @@ public class GameServiceImpl implements GameService {
      * {@inheritDoc}
      */
     @Override
-    public void movePlayer(String sessionId, int playerId, Position destination) throws NoSuchUserException, PlayerNotFoundException, MatchNotGoingException {
+    public void movePlayer(String sessionId, int playerId, Position destination) throws NoSuchUserException, PlayerNotFoundException, MatchNotOnGoingException {
         if (Match.getInstance().getRoundStatus() == RoundStatusType.PENDING) {
-            throw new MatchNotGoingException();
+            throw new MatchNotOnGoingException();
         }
 
         Player player = Match.getInstance().getJoinedUser(sessionId).getPlayerById(playerId);
@@ -54,9 +54,9 @@ public class GameServiceImpl implements GameService {
      * {@inheritDoc}
      */
     @Override
-    public void kickBall(Position direction, double kickForce, String sessionId) throws MatchNotGoingException, NoSuchUserException, KickNotAllowedException {
+    public void kickBall(Position direction, double kickForce, String sessionId) throws MatchNotOnGoingException, NoSuchUserException, KickNotAllowedException {
         if (Match.getInstance().getRoundStatus() == RoundStatusType.PENDING) {
-            throw new MatchNotGoingException();
+            throw new MatchNotOnGoingException();
         }
         Ball ball = Match.getInstance().getBall();
         if (ball.getPlayer() == null || !Match.getInstance().checkIfUserTeamHasBall(sessionId)) {

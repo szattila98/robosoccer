@@ -7,7 +7,7 @@ import lombok.Getter;
 import lombok.ToString;
 
 /**
- * Message sent by a client, a move order for a player.
+ * Inbound message class for movement command.
  *
  * @author Attila Szőke
  */

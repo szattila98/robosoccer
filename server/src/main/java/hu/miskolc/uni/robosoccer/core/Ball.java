@@ -24,20 +24,26 @@ public class Ball extends Movable {
     @JsonIgnore
     private Double forceOfKick;
 
+    /**
+     * Constructor which initializes the ball, and centers it.
+     */
     public Ball() {
-        super(new Position(70, 50)); // center of the soccer pitch
+        super(new Position(Match.PITCH_WIDTH / 2, Match.PITCH_HEIGHT / 2));
         this.player = null;
         this.forceOfKick = null;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void plotPositionsToMoveTo(Position start, Position end) {
         this.positionsToMoveTo.clear();
-        double distance = (Math.sqrt(Math.pow(end.getX() - start.getX(), 2) + Math.pow(end.getY() - start.getY(), 2)))*forceOfKick;
+        double distance = (Math.sqrt(Math.pow(end.getX() - start.getX(), 2) + Math.pow(end.getY() - start.getY(), 2))) * forceOfKick;
         Position vector = start.toNormalizedDirectionVector(end);
         for (double i = 0; i < distance; i += forceOfKick) {
             Position newPosition = vector.multiplyByScalar(i).plus(this.position);
-            if(!super.validatePosition(newPosition)) {
+            if (!super.validatePosition(newPosition)) {
                 break;
             }
             this.positionsToMoveTo.add(newPosition);
@@ -45,6 +51,9 @@ public class Ball extends Movable {
         forceOfKick = null;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void processMovement() {
         if (player == null) {
@@ -54,6 +63,9 @@ public class Ball extends Movable {
         }
     }
 
+    /**
+     * Moves the ball in front of the player who has it.
+     */
     private void moveInFrontOfPlayer() {
         if (this.player.positionsToMoveTo.size() >= 2) {
             Position playerPosition = this.player.getPositionsToMoveTo().get(0);
@@ -64,16 +76,12 @@ public class Ball extends Movable {
         }
     }
 
-    private Position positionByKickForce(Position start, Position end) {
-        double newX = start.getX() + round((end.getX() - start.getX()) * forceOfKick, 1);
-        double newY = start.getY() + round((end.getY() - start.getY()) * forceOfKick, 1);
-        forceOfKick = null;
-        return new Position(newX, newY);
+    /**
+     * Centers the ball again.
+     */
+    public void recenterBall() {
+        this.positionsToMoveTo.clear();
+        this.forceOfKick = null;
+        this.position.move(new Position(Match.PITCH_WIDTH / 2, Match.PITCH_HEIGHT / 2));
     }
-
-    private double round(double value, int precision) {
-        int scale = (int) Math.pow(10, precision);
-        return (double) Math.round(value * scale) / scale;
-    }
-
 }

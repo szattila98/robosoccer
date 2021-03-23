@@ -20,13 +20,26 @@ public class Player extends Movable {
     private final int radius;
     private final SideType side;
 
+    /**
+     * Initializes a new player.
+     *
+     * @param id               id
+     * @param startingPosition starting position
+     * @param side             side of the pitch
+     */
     public Player(int id, Position startingPosition, SideType side) {
         super(startingPosition);
         this.id = id;
-        this.radius = 1;
+        this.radius = 2;
         this.side = side;
     }
 
+    /**
+     * Checks whether a position falls inside the players reach.
+     *
+     * @param otherPosition a position
+     * @return boolean
+     */
     public boolean fallsInsidePlayerReach(Position otherPosition) {
         // the inequation is (x - center_x)^2 + (y - center_y)^2 < radius^2
         // < inside the circle
