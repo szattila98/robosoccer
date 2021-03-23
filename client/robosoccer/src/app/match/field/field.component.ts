@@ -8,6 +8,7 @@ import { Player } from 'src/app/core/models/player';
 import { User } from 'src/app/core/models/user';
 import { SessionStorageService } from 'src/app/core/services/session-storage.service';
 import { SocketService } from 'src/app/core/services/socket.service';
+import { environment } from 'src/environments/environment';
 import { StrategyService } from '../strategy.service';
 
 const FIELD_IMG_RATIO = 2873 / 1844;
@@ -39,9 +40,9 @@ export class FieldComponent implements AfterViewInit {
 
   match: Match;
 
-  _debug = true;
-  _selectedPlayer: Player;
-  _clickTimer;
+  debug: boolean = environment.debug;
+  selectedPlayer: Player;
+  clickTimer: any;
 
   constructor(
     private router: Router,
@@ -134,26 +135,19 @@ export class FieldComponent implements AfterViewInit {
     this.canvas.nativeElement.height = Math.floor((window.innerWidth - FIELD_MARGIN_PX) / FIELD_IMG_RATIO);
   }
 
-
-
-
-
-
-  //// Debug functions
-
-  _getFieldPointX(canvasX: number) {
+  getFieldPointX(canvasX: number): number {
     const rect = this.canvas.nativeElement.getBoundingClientRect();
     canvasX -= rect.left;
     return canvasX / this.canvasWidth * FIELD_X_MAX;
   }
 
-  _getFieldPointY(canvasY: number) {
+  getFieldPointY(canvasY: number): number {
     const rect = this.canvas.nativeElement.getBoundingClientRect();
     canvasY -= rect.top;
     return canvasY / this.canvasHeight * FIELD_Y_MAX;
   }
 
-  _getUserBySide(side: Side): User {
+  getUserBySide(side: Side): User {
     for (const user of this.match.users) {
       if (user.side === side) {
         return user;
@@ -161,17 +155,17 @@ export class FieldComponent implements AfterViewInit {
     }
   }
 
-  _getNearestPlayer(clickX: number, clickY: number) {
+  getNearestPlayer(clickX: number, clickY: number): Player {
     const side = this.sessionStorageService.getSession().side;
-    const user = this._getUserBySide(side);
+    const user = this.getUserBySide(side);
     const distances: { player: Player, distance: number }[] = [];
 
     for (const player of user.team) {
       distances.push({
         player,
         distance: Math.sqrt(
-          Math.pow(player.position.x - this._getFieldPointX(clickX), 2)
-          + Math.pow(player.position.y - this._getFieldPointY(clickY), 2))
+          Math.pow(player.position.x - this.getFieldPointX(clickX), 2)
+          + Math.pow(player.position.y - this.getFieldPointY(clickY), 2))
       });
     }
 
@@ -179,46 +173,52 @@ export class FieldComponent implements AfterViewInit {
     return distances[0].player;
   }
 
-  _handleSingleClick(event) {
+  handleSingleClick(event): void {
     const canvasX = event.clientX;
     const canvasY = event.clientY;
 
-    if (!this._selectedPlayer) {
-      this._selectedPlayer = this._getNearestPlayer(canvasX, canvasY);
+    if (!this.selectedPlayer) {
+      this.selectedPlayer = this.getNearestPlayer(canvasX, canvasY);
       return;
     }
 
     this.socketService.sendMoveCommand({
-      playerId: this._selectedPlayer.id,
+      playerId: this.selectedPlayer.id,
       destination: {
-        x: this._getFieldPointX(canvasX),
-        y: this._getFieldPointY(canvasY)
+        x: this.getFieldPointX(canvasX),
+        y: this.getFieldPointY(canvasY)
       }
     });
-    this._selectedPlayer = null;
+    this.selectedPlayer = null;
   }
 
-  _handleKick(x: number, y: number) {
+  handleKick(x: number, y: number, forceOfKick: number): void {
     this.socketService.sendKickCommand({
       destination: { x, y },
-      forceOfKick: 1.0
+      forceOfKick
     });
   }
 
-  _handleDoubleClick(event) {
-    clearTimeout(this._clickTimer);
-    const x = this._getFieldPointX(event.clientX);
-    const y = this._getFieldPointY(event.clientY);
-    this._handleKick(x, y);
+  handleDoubleClick(event): void {
+    if (!this.debug) {
+      return;
+    }
+
+    clearTimeout(this.clickTimer);
+    const x = this.getFieldPointX(event.clientX);
+    const y = this.getFieldPointY(event.clientY);
+    this.handleKick(x, y, 1.0);
   }
 
-  _handleClick(event) {
+  handleClick(event): void {
+    if (!this.debug) {
+      return;
+    }
+
     if (event.detail === 1) {
-      this._clickTimer = setTimeout(() => {
-        this._handleSingleClick(event);
+      this.clickTimer = setTimeout(() => {
+        this.handleSingleClick(event);
       }, 200);
     }
   }
-
-
 }

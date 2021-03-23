@@ -4,7 +4,8 @@
 
 export const environment = {
   production: false,
-  socketBaseUrl: '/api/ws'
+  socketBaseUrl: '/api/ws',
+  debug: true
 };
 
 /*
