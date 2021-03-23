@@ -8,7 +8,7 @@ import lombok.ToString;
 import java.util.Date;
 
 /**
- * Message which carries information about the state of the match;
+ * Outbound message which carries information about the state of the match.
  *
  * @author Tamás Sólyom
  */

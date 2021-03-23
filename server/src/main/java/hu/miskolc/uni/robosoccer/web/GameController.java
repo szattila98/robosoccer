@@ -44,12 +44,6 @@ public class GameController {
         this.service = service;
     }
 
-    /**
-     * Joins a player to the game.
-     *
-     * @param sha  the header accessor
-     * @param name the player name
-     */
     @MessageMapping("/join")
     public void join(SimpMessageHeaderAccessor sha, @Payload String name) {
         User user = new User(sha.getSessionId(), name);
@@ -86,7 +80,7 @@ public class GameController {
             log.error(e.getMessage() + " {}", sha.getSessionId());
         } catch (PlayerNotFoundException e) {
             log.error(e.getMessage() + " {}", message.getPlayerId());
-        } catch (MatchNotGoingException e) {
+        } catch (MatchNotOnGoingException e) {
             log.error(e.getMessage());
         }
     }
@@ -95,19 +89,22 @@ public class GameController {
     public void kick(SimpMessageHeaderAccessor sha, @Payload KickMessage message) {
         try {
             service.kickBall(message.getDestination(), message.getForceOfKick(), sha.getSessionId());
-        } catch (MatchNotGoingException | NoSuchUserException | KickNotAllowedException e) {
+        } catch (MatchNotOnGoingException | NoSuchUserException | KickNotAllowedException e) {
             log.error(e.getMessage());
         }
     }
 
+    /**
+     * Sends the match state to the clients with the updated game logic.
+     */
     @Scheduled(fixedRate = 50)
     public void sendMatchState() {
         if (Match.getInstance().getRoundStatus() == RoundStatusType.ONGOING) {
             Match.getInstance().processMovements();
             Match.getInstance().checkForBallCaptureEvent();
+            Match.getInstance().checkGoal();
             template.convertAndSend("/socket/game", new MatchStateMessage(Match.getInstance()));
             log.debug("Match state sent: {}", Match.getInstance());
-            System.out.println(Match.getInstance().getBall().getPosition());
         }
     }
 

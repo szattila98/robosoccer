@@ -1,7 +1,7 @@
 package hu.miskolc.uni.robosoccer.core.exceptions;
 
 /**
- * Thrown when somebody wants to change his ready status, but the match is already ongoing.
+ * Thrown a user wants to change his ready status, but the match is already ongoing.
  *
  * @author Tamás Sólyom
  */

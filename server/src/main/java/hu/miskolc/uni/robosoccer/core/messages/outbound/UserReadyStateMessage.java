@@ -8,7 +8,7 @@ import lombok.Getter;
 import lombok.ToString;
 
 /**
- * Message which carries information about the user ready state.
+ * Outbound message which carries information about the user ready state.
  *
  * @author Tamás Sólyom
  */

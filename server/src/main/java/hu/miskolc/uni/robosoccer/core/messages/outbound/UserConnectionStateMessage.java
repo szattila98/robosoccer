@@ -10,7 +10,7 @@ import lombok.ToString;
 import java.util.Date;
 
 /**
- * Message which carries information about the status of connections.
+ * Outbound message which carries information about the status of connections.
  *
  * @author Attila Szőke
  */

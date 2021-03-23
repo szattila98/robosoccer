@@ -1,5 +1,10 @@
 package hu.miskolc.uni.robosoccer.core.exceptions;
 
+/**
+ * Thrown when the kick is not allowed.
+ *
+ * @author Tamás Sólyom
+ */
 public class KickNotAllowedException extends Exception {
 
     private static final String ERROR_MSG = "Kick is not allowed, the user does not control this player or nobody has the ball!";

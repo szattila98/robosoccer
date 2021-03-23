@@ -6,6 +6,11 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
+/**
+ * Inbound message class for kick command.
+ *
+ * @author Tamás Sólyom
+ */
 @AllArgsConstructor
 @Getter
 @ToString

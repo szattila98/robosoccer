@@ -26,6 +26,12 @@ public class User {
     private int points;
     private boolean ready;
 
+    /**
+     * Initializes a user.
+     *
+     * @param sessionId the web socket session id
+     * @param name      the name of the user
+     */
     public User(String sessionId, String name) {
         this.sessionId = sessionId;
         this.name = name;
@@ -34,6 +40,9 @@ public class User {
         this.ready = false;
     }
 
+    /**
+     * Fills the team of a user.
+     */
     public void fillTeam() {
         this.team.clear();
         Position[] positions = new Position[]{  // soccer pitch is 140 * 100, (0,0) is at the upper left corner
@@ -62,6 +71,13 @@ public class User {
 
     }
 
+    /**
+     * Returns a player by its id.
+     *
+     * @param playerId the player id
+     * @return the player
+     * @throws PlayerNotFoundException thrown when no player with this id is found
+     */
     public Player getPlayerById(int playerId) throws PlayerNotFoundException {
         return this.team.stream()
                 .filter(player -> player.getId() == playerId)
@@ -69,14 +85,25 @@ public class User {
                 .orElseThrow(PlayerNotFoundException::new);
     }
 
+    /**
+     * Increments the points of a user. Usable on goal.
+     */
     public void incrementPoints() {
         this.points++;
     }
 
+    /**
+     * Sets the side of the player.
+     *
+     * @param side side of the pitch
+     */
     public void setSide(SideType side) {
         this.side = side;
     }
 
+    /**
+     * Toggles ready.
+     */
     public void toggleReady() {
         this.ready = !this.ready;
     }
