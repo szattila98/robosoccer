@@ -22,11 +22,26 @@
                     <span class="team-name">{{match.users[1].name }}</span>
                     <small class="text-light" *ngIf="match.users[1].sessionId === sessionId"> (You)</small>
                 </div>
-                
             </div>
             <div class="row">
                 <div class="col-md-12 text-center">
-                    <canvas #football_field></canvas>
+                    <canvas #football_field (click)="handleClick($event)"
+                        (dblclick)="handleDoubleClick($event)"></canvas>
+                </div>
+            </div>
+            <div class="row" *ngIf="debug">
+                <div class="col-12 text-center">
+                    <h5 class="text-light">Debug information</h5>
+                    <hr>
+                </div>
+                <div class="col-12 text-center">
+                    Selected player: {{ selectedPlayer?.side }} {{ selectedPlayer?.id }}
+                </div>
+                <div class="col-12 text-center">
+                    Ball: ({{ match?.ball?.position.x.toFixed(4) }}, {{ match?.ball?.position.y.toFixed(4) }})
+                </div>
+                <div class="col-12 text-center">
+                    Ball owner: {{ match?.ball?.player?.side }} {{ match?.ball?.player?.id }} 
                 </div>
             </div>
         </div>

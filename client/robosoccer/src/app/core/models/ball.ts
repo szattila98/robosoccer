@@ -1,6 +1,7 @@
+import { Player } from './player';
 import { Position } from './position';
 
 export interface Ball {
-    playerId: number;
+    player: Player;
     position: Position;
 }
