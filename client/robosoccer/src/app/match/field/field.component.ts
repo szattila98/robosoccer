@@ -67,6 +67,15 @@ export class FieldComponent implements AfterViewInit {
     }
   }
 
+  get mySide(): Side {
+    const currentUser = this.match.users.filter(user => user.sessionId === this.sessionId);
+    if (currentUser.length !== 1) {
+      return null;
+    }
+
+    return currentUser[0].side;
+  }
+
   get canShowResults(): boolean {
     return this.match && Array.isArray(this.match.users) && this.match.users.length === 2;
   }
@@ -121,6 +130,7 @@ export class FieldComponent implements AfterViewInit {
       const body = JSON.parse(message.body);
       this.match = body.match;
       this.updateField();
+      this.strategyService.sendCommands(this.match, this.mySide);
     } catch (err) {
       console.error(err);
       this.router.navigateByUrl('/error');
