@@ -11,13 +11,18 @@ import { GeometryService } from './geometry.service';
 const FIELD_X_MAX = 140;
 const FIELD_Y_MAX = 100;
 const CHECK_RADIUS = 20;
-const DISABLED_DISTANCE = 2;
-const DESTINATION_TOLERANCE = 0.5;
+const DISABLED_DISTANCE = 5;
+const DESTINATION_TOLERANCE = 0.4;
 
 interface PlayerMovement {
   player: Player;
   start: Position;
   destination: Position;
+}
+
+interface Distance {
+  player: Player;
+  distance: number;
 }
 
 @Injectable({
@@ -29,7 +34,7 @@ export class StrategyService {
   lastRight: User;
   lastBall: Ball;
 
-  disabledPlayers: PlayerMovement[] = [];
+  disabledMovements: PlayerMovement[] = [];
 
   constructor(
     private socketService: SocketService,
@@ -62,7 +67,7 @@ export class StrategyService {
   }
 
   private reachedDestination(player: Player): boolean {
-    for (const disabled of this.disabledPlayers) {
+    for (const disabled of this.disabledMovements) {
       if (disabled.player.id === player.id
         && this.geometryService.getDistance(disabled.destination, player.position) < DESTINATION_TOLERANCE) {
         return true;
@@ -73,7 +78,7 @@ export class StrategyService {
   }
 
   private isPlayerDisabled(player: Player): boolean {
-    for (const disabled of this.disabledPlayers) {
+    for (const disabled of this.disabledMovements) {
       if (disabled.player.id === player.id) {
         return true;
       }
@@ -88,7 +93,7 @@ export class StrategyService {
   }
 
   private isDisabledPlayerMovedEnough(player: Player): boolean {
-    const disabled = this.disabledPlayers.find(element => element.player.id === player.id);
+    const disabled = this.disabledMovements.find(element => element.player.id === player.id);
     return disabled && this.geometryService.getDistance(disabled.start, player.position) >= DISABLED_DISTANCE;
   }
 
@@ -102,10 +107,47 @@ export class StrategyService {
     for (const player of players) {
       if (this.isPlayerDisabled(player)
         && (this.reachedDestination(player) || this.isDisabledPlayerMovedEnough(player))) {
-          const index = this.disabledPlayers.findIndex(disabled => disabled.player.id === player.id);
-          this.disabledPlayers.splice(index, 1);
+          const index = this.disabledMovements.findIndex(disabled => disabled.player.id === player.id);
+          this.disabledMovements.splice(index, 1);
       }
     }
+  }
+
+  private movePlayer(player: Player, destination: Position): void {
+    if (!this.isPlayerDisabled(player)) {
+      this.disabledMovements.push({
+        player,
+        start: player.position,
+        destination
+      });
+      this.socketService.sendMoveCommand({ playerId: player.id, destination });
+    }
+  }
+
+  private getPlayersNearBall(user: User, ball: Ball): Player[] {
+    const team = user.team;
+    const playersNearBall = [];
+
+    for (const player of team) {
+      if (this.geometryService.getDistance(player.position, ball.position) <= CHECK_RADIUS) {
+        playersNearBall.push(player);
+      }
+    }
+
+    return playersNearBall;
+  }
+
+  private sortPlayersByDistance(team: Player[], position: Position): Distance[] {
+    const distances = [];
+
+    for (const player of team) {
+      distances.push({
+        player,
+        distance: this.geometryService.getDistance(player.position, position)
+      });
+    }
+
+    return distances.sort((a, b) => a.distance - b.distance);
   }
 
   sendCommands(match: Match, mySide: Side): void {
@@ -114,17 +156,15 @@ export class StrategyService {
     const newBall = match.ball;
 
     if (this.isNewRound(newLeft, newRight)) {
-      this.disabledPlayers = [];
+      this.disabledMovements = [];
       this.saveNewState(newLeft, newRight, newBall);
       return;
     }
 
     this.unblockPlayers(Side.LEFT.valueOf() === mySide.valueOf() ? newLeft : newRight);
-    console.log(this.disabledPlayers.map(player => player.player.id));
 
     if (this.iHaveBall(newBall, mySide)) {
       console.log('I HAVE THE BALL');
-
       // félkör, CHECK_RADIUS sugárral -> 4 körcikk
       // melyik körcikkben mennyi saját és mennyi other player van
       // ha van olyan, ahol senki nincs, akkor arra indul CHECK_RADIUS távolságra
@@ -137,38 +177,20 @@ export class StrategyService {
     }
 
     if (this.otherTeamHasBall(newBall, mySide)) {
-      console.log('OTHER TEAM HAS THE BALL');
-
-      // melyik játékos(ok) van(nak) a legközelebb hozzá (elindul(nak) a labda pozíciójába)
-      // több játékos: pl ha CHECK_RADIUS-on belül többen vannak
+      const myUser: User = this.getUserBySide(match, mySide);
+      const playersNearBall = this.getPlayersNearBall(myUser, newBall);
+      playersNearBall.forEach(player => this.movePlayer(player, newBall.position));
     }
 
     if (this.nobodyHasBall(newBall)) {
-      // TODO: put team-wide distance calculation to separate function
       const myUser: User = this.getUserBySide(match, mySide);
-      const distances: { player: Player, distance: number }[] = [];
-
-      for (const player of myUser.team) {
-        distances.push({
-          player,
-          distance: this.geometryService.getDistance(player.position, newBall.position)
-        });
-      }
-
-      distances.sort((a, b) => a.distance - b.distance);
-      const playerToRun = distances[0].player;
-
-      if (!this.isPlayerDisabled(playerToRun)) { // TODO: do movement in separate function
-        this.disabledPlayers.push({
-          player: playerToRun,
-          start: playerToRun.position,
-          destination: newBall.position
-        });
-        this.socketService.sendMoveCommand({ playerId: playerToRun.id, destination: newBall.position });
-      }
+      const distances: Distance[] = this.sortPlayersByDistance(myUser.team, newBall.position);
+      const playerToRun = distances[0].player; // closest player to ball
+      this.movePlayer(playerToRun, newBall.position);
     }
 
-    // minden játékos menjen vissza a kezdőpozíciójára, ha épp nincs dolga máshol (pl. nincs a labdától X távolságra)
+    // TODO: every player in team: go to start position when ball is not inside CHECK_RADIUS
+    // TODO: use ball movement direction instead of just the current position
 
     this.saveNewState(newLeft, newRight, newBall);
   }
