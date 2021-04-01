@@ -11,6 +11,14 @@ import { GeometryService } from './geometry.service';
 const FIELD_X_MAX = 140;
 const FIELD_Y_MAX = 100;
 const CHECK_RADIUS = 20;
+const DISABLED_DISTANCE = 2;
+const DESTINATION_TOLERANCE = 0.5;
+
+interface PlayerMovement {
+  player: Player;
+  start: Position;
+  destination: Position;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -21,8 +29,7 @@ export class StrategyService {
   lastRight: User;
   lastBall: Ball;
 
-  disabledPlayers: { player: Player, position: Position }[] = [];
-  // TODO: a player addig legyen disabled, amíg el nem mozdult X távolságra a rögzített kezdőpozíciójától
+  disabledPlayers: PlayerMovement[] = [];
 
   constructor(
     private socketService: SocketService,
@@ -54,21 +61,20 @@ export class StrategyService {
     return !ball.player;
   }
 
-  // private reachedDestination(player: Player, position: Position): boolean {
-  //   const user = player.side.valueOf() === Side.LEFT.valueOf() ? this.lastLeft : this.lastRight;
-  //   const team = user.team;
-  //   const disabledPlayer = team.find(oldPlayer => oldPlayer.id === player.id);
+  private reachedDestination(player: Player): boolean {
+    for (const disabled of this.disabledPlayers) {
+      if (disabled.player.id === player.id
+        && this.geometryService.getDistance(disabled.destination, player.position) < DESTINATION_TOLERANCE) {
+        return true;
+      }
+    }
 
-  //   if (!disabledPlayer) {
-  //     return true;
-  //   }
-
-  //   return disabledPlayer.position.x === player.position.x && disabledPlayer.position.y === player.position.y;
-  // }
+    return false;
+  }
 
   private isPlayerDisabled(player: Player): boolean {
-    for (const disabledPlayer of this.disabledPlayers) {
-      if (disabledPlayer.player.id === player.id && disabledPlayer.player.side.valueOf() === player.side.valueOf()) {
+    for (const disabled of this.disabledPlayers) {
+      if (disabled.player.id === player.id) {
         return true;
       }
     }
@@ -78,7 +84,28 @@ export class StrategyService {
 
   private isNewRound(leftUser: User, rightUser: User): boolean {
     return !this.lastLeft || !this.lastRight || !this.lastBall
-    || leftUser.points !== this.lastLeft.points || rightUser.points !== this.lastRight.points;
+      || leftUser.points !== this.lastLeft.points || rightUser.points !== this.lastRight.points;
+  }
+
+  private isDisabledPlayerMovedEnough(player: Player): boolean {
+    const disabled = this.disabledPlayers.find(element => element.player.id === player.id);
+    return disabled && this.geometryService.getDistance(disabled.start, player.position) >= DISABLED_DISTANCE;
+  }
+
+  private unblockPlayers(myUser: User): void {
+    const players = myUser?.team;
+
+    if (!players) {
+      return;
+    }
+
+    for (const player of players) {
+      if (this.isPlayerDisabled(player)
+        && (this.reachedDestination(player) || this.isDisabledPlayerMovedEnough(player))) {
+          const index = this.disabledPlayers.findIndex(disabled => disabled.player.id === player.id);
+          this.disabledPlayers.splice(index, 1);
+      }
+    }
   }
 
   sendCommands(match: Match, mySide: Side): void {
@@ -92,11 +119,8 @@ export class StrategyService {
       return;
     }
 
-    // for (const i in this.disabledPlayers) {
-    //   if (this.reachedDestination(this.disabledPlayers[i].player)) {
-
-    //   }
-    // }
+    this.unblockPlayers(Side.LEFT.valueOf() === mySide.valueOf() ? newLeft : newRight);
+    console.log(this.disabledPlayers.map(player => player.player.id));
 
     if (this.iHaveBall(newBall, mySide)) {
       console.log('I HAVE THE BALL');
@@ -120,6 +144,7 @@ export class StrategyService {
     }
 
     if (this.nobodyHasBall(newBall)) {
+      // TODO: put team-wide distance calculation to separate function
       const myUser: User = this.getUserBySide(match, mySide);
       const distances: { player: Player, distance: number }[] = [];
 
@@ -133,11 +158,17 @@ export class StrategyService {
       distances.sort((a, b) => a.distance - b.distance);
       const playerToRun = distances[0].player;
 
-      if (!this.isPlayerDisabled(playerToRun)) {
-        this.disabledPlayers.push({ player: playerToRun, position: playerToRun.position });
+      if (!this.isPlayerDisabled(playerToRun)) { // TODO: do movement in separate function
+        this.disabledPlayers.push({
+          player: playerToRun,
+          start: playerToRun.position,
+          destination: newBall.position
+        });
         this.socketService.sendMoveCommand({ playerId: playerToRun.id, destination: newBall.position });
       }
     }
+
+    // minden játékos menjen vissza a kezdőpozíciójára, ha épp nincs dolga máshol (pl. nincs a labdától X távolságra)
 
     this.saveNewState(newLeft, newRight, newBall);
   }
