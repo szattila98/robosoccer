@@ -101,9 +101,7 @@ public class Match {
      * Resets the match.
      */
     public void reset() {
-        List<User> listWithConnectedUser = this.getUsers();
         instance = new Match();
-        instance.getUsers().addAll(listWithConnectedUser);
     }
 
     /**
@@ -132,6 +130,7 @@ public class Match {
                 for (Player player : user.getTeam()) {
                     if (player.fallsInsidePlayerReach(this.ball.getPosition())) {
                         this.ball.setPlayer(player);
+                        return;
                     }
                 }
             }
@@ -176,7 +175,7 @@ public class Match {
      */
     public void startNextRound() {
         advanceRound();
-        this.ball.recenterBall();
+        this.ball.randomBallPosition();
         this.ball.setPlayer(null);
         for (User u : this.users) {
             u.fillTeam();

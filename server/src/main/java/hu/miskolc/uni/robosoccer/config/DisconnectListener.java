@@ -34,14 +34,11 @@ public class DisconnectListener {
     @EventListener
     public void disconnectHandler(SessionDisconnectEvent event) {
         StompHeaderAccessor sha = StompHeaderAccessor.wrap(event.getMessage());
-        User user = null;
         try {
-            user = Match.getInstance().getJoinedUser(sha.getSessionId());
-            UserConnectionStateMessage conn = new UserConnectionStateMessage(user, new Date(), ConnectionType.DISCONNECTED);
-            Match.getInstance().getUsers().remove(user);
+            User user = Match.getInstance().getJoinedUser(sha.getSessionId());
             Match.getInstance().reset();
-            template.convertAndSend("/socket/game", conn);
-            log.warn("A user {} disconnected, resetting match!", user);
+            template.convertAndSend("/socket/game", new UserConnectionStateMessage(user, new Date(), ConnectionType.DISCONNECTED));
+            log.warn("A user with sessionId: {} and name: {} disconnected, resetting match!", user.getSessionId(), user.getName());
         } catch (NoSuchUserException e) {
             log.error(e.getMessage() + " {}", sha.getSessionId());
         }

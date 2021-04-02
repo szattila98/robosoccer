@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.util.Random;
+
 /**
  * Represents the soccer ball.
  *
@@ -77,11 +79,14 @@ public class Ball extends Movable {
     }
 
     /**
-     * Centers the ball again.
+     * Gives a random starting position to the ball.
      */
-    public void recenterBall() {
+    public void randomBallPosition() {
+        int max = 20;
+        int min = -20;
+        int rand = new Random().nextInt(max - min) + min;
         this.positionsToMoveTo.clear();
         this.forceOfKick = null;
-        this.position.move(new Position(Match.PITCH_WIDTH / 2, Match.PITCH_HEIGHT / 2));
+        this.position.move(new Position(Match.PITCH_WIDTH / 2 + rand, Match.PITCH_HEIGHT / 2 + rand));
     }
 }
