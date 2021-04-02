@@ -6,13 +6,14 @@ import { Player } from '../core/models/player';
 import { Position } from '../core/models/position';
 import { User } from '../core/models/user';
 import { SocketService } from '../core/services/socket.service';
-import { GeometryService } from './geometry.service';
+import { GeometryService, Sector } from './geometry.service';
 
 const FIELD_X_MAX = 140;
 const FIELD_Y_MAX = 100;
 const CHECK_RADIUS = 20;
 const DISABLED_DISTANCE = 5;
 const DESTINATION_TOLERANCE = 0.4;
+const ATTACK_SECTOR_COUNT = 4;
 
 interface PlayerMovement {
   player: Player;
@@ -23,6 +24,12 @@ interface PlayerMovement {
 interface Distance {
   player: Player;
   distance: number;
+}
+
+interface DecisionData {
+  sector: Sector;
+  teammates: Player[];
+  opponents: Player[];
 }
 
 @Injectable({
@@ -107,8 +114,8 @@ export class StrategyService {
     for (const player of players) {
       if (this.isPlayerDisabled(player)
         && (this.reachedDestination(player) || this.isDisabledPlayerMovedEnough(player))) {
-          const index = this.disabledMovements.findIndex(disabled => disabled.player.id === player.id);
-          this.disabledMovements.splice(index, 1);
+        const index = this.disabledMovements.findIndex(disabled => disabled.player.id === player.id);
+        this.disabledMovements.splice(index, 1);
       }
     }
   }
@@ -150,6 +157,10 @@ export class StrategyService {
     return distances.sort((a, b) => a.distance - b.distance);
   }
 
+  private revertSide(side: Side): Side {
+    return side.valueOf() === Side.LEFT.valueOf() ? Side.RIGHT : Side.LEFT;
+  }
+
   sendCommands(match: Match, mySide: Side): void {
     const newLeft = this.getUserBySide(match, Side.LEFT);
     const newRight = this.getUserBySide(match, Side.RIGHT);
@@ -164,16 +175,42 @@ export class StrategyService {
     this.unblockPlayers(Side.LEFT.valueOf() === mySide.valueOf() ? newLeft : newRight);
 
     if (this.iHaveBall(newBall, mySide)) {
-      console.log('I HAVE THE BALL');
+      const playerWithBall = newBall.player;
+      const myUser = this.getUserBySide(match, mySide);
+      const otherUser = this.getUserBySide(match, this.revertSide(mySide));
+
+      const attackSectors = this.geometryService.getSectors(
+        playerWithBall.position, CHECK_RADIUS, this.revertSide(mySide), ATTACK_SECTOR_COUNT);
+
+      const possibleDecisions: DecisionData[] = attackSectors.map(sector => {
+        return {
+          sector,
+          // TODO: put this to separate function
+          teammates: myUser.team.filter(player => this.geometryService.isInsideSector(playerWithBall.position,
+            player.position, sector.sectorStart, sector.sectorEnd, CHECK_RADIUS)),
+          opponents: otherUser.team.filter(player => this.geometryService.isInsideSector(playerWithBall.position,
+            player.position, sector.sectorStart, sector.sectorEnd, CHECK_RADIUS)),
+        };
+      });
+
+      // TODO: remove this line:
+      this.movePlayer(playerWithBall,
+        mySide.valueOf() === Side.LEFT.valueOf() ? { x: 140, y: 60 } : { x: 0, y: 40 });
+
       // félkör, CHECK_RADIUS sugárral -> 4 körcikk
-      // melyik körcikkben mennyi saját és mennyi other player van
+      // melyik körcikkben mennyi saját és ellenfél játékos van
       // ha van olyan, ahol senki nincs, akkor arra indul CHECK_RADIUS távolságra
       // ha több olyan van, ahol senki nincs, akkor sorsol
 
       // ha valamelyikben csak saját játékos van, felé passzol
       // ha többen is, sorsol
 
-      // ha 2-nél több other player van mindegyikben, elindul a saját kapu fele v. passzol
+      // ha 2-nél több ellenfél van mindegyikben, elindul a saját kapu fele v. passzol
+
+      // lefedtünk-e minden esetet (alapértelmezett viselkedés?)
+      // deadlockok:
+      // megállnak a játékosok, és összevissza megy köztük a labda
+      // beáll egy játékos, aki támadhatna - cselezéskor arrébb rak-e játékosokat a szerver?
     }
 
     if (this.otherTeamHasBall(newBall, mySide)) {
@@ -191,6 +228,7 @@ export class StrategyService {
 
     // TODO: every player in team: go to start position when ball is not inside CHECK_RADIUS
     // TODO: use ball movement direction instead of just the current position
+    // TODO: when players are in the same position for longer time, choose one and move to random direction
 
     this.saveNewState(newLeft, newRight, newBall);
   }
