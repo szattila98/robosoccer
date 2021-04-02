@@ -23,6 +23,8 @@ public abstract class Movable {
     protected final Position position;
     @JsonIgnore
     protected final LinkedList<Position> positionsToMoveTo;
+    @JsonIgnore
+    protected Position directionVector;
 
     /**
      * Initializes a movable.
@@ -32,6 +34,7 @@ public abstract class Movable {
     protected Movable(Position startingPosition) {
         this.position = startingPosition;
         this.positionsToMoveTo = new LinkedList<>();
+        this.directionVector = new Position(1D, 0D); // starting direction is the same for everyone, does not matter much yet if some are backwards
     }
 
     /**
@@ -53,9 +56,9 @@ public abstract class Movable {
     public void plotPositionsToMoveTo(Position start, Position end) {
         this.positionsToMoveTo.clear();
         double distance = Math.sqrt(Math.pow(end.getX() - start.getX(), 2) + Math.pow(end.getY() - start.getY(), 2));
-        Position vector = start.toNormalizedDirectionVector(end);
+        directionVector = start.toNormalizedDirectionVector(end);
         for (double i = 0; i < distance; i += SPEED) {
-            Position newPosition = vector.multiplyByScalar(i).plus(this.position);
+            Position newPosition = directionVector.multiplyByScalar(i).plus(this.position);
             if (!validatePosition(newPosition)) {
                 break;
             }

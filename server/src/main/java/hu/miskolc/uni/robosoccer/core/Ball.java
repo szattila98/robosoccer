@@ -69,13 +69,8 @@ public class Ball extends Movable {
      * Moves the ball in front of the player who has it.
      */
     private void moveInFrontOfPlayer() {
-        if (this.player.positionsToMoveTo.size() >= 2) {
-            Position playerPosition = this.player.getPositionsToMoveTo().get(0);
-            Position playerNextPosition = this.player.getPositionsToMoveTo().get(1);
-            Position vector = playerPosition.toNormalizedDirectionVector(playerNextPosition);
-            Position ballPosition = vector.multiplyByScalar(AHEAD_OF_PLAYER_DISTANCE).plus(playerPosition);
-            this.position.move(ballPosition);
-        }
+        Position ballPosition = this.player.directionVector.multiplyByScalar(AHEAD_OF_PLAYER_DISTANCE).plus(this.player.position);
+        this.position.move(ballPosition);
     }
 
     /**
