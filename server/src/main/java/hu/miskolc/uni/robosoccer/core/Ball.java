@@ -82,8 +82,8 @@ public class Ball extends Movable {
      * Gives a random starting position to the ball.
      */
     public void randomBallPosition() {
-        int max = 20;
-        int min = -20;
+        int max = 25;
+        int min = -25;
         int rand = new Random().nextInt(max - min) + min;
         this.positionsToMoveTo.clear();
         this.forceOfKick = null;
