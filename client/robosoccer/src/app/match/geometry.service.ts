@@ -72,6 +72,10 @@ export class GeometryService {
     return Math.sqrt(Math.pow(pointA.x - pointB.x, 2) + Math.pow(pointA.y - pointB.y, 2));
   }
 
+  public getNearestIntersection(line: Position[], point: Position): Position {
+    return { x: 0, y: 0 }; // TODO
+  }
+
   private areClockwise(v1: Position, v2: Position): boolean {
     return -v1.x * v2.y + v1.y * v2.x > 0;
   }

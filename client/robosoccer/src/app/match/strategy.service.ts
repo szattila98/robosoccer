@@ -10,14 +10,15 @@ import { GeometryService, Sector } from './geometry.service';
 
 const FIELD_X_MAX = 140;
 const FIELD_Y_MAX = 100;
-const CHECK_RADIUS = 20;
-const DISABLED_DISTANCE = 5;
-const DESTINATION_TOLERANCE = 0.4;
-const ATTACK_SECTOR_COUNT = 4;
+const CHECK_RADIUS = 30;
+const DISABLED_FRAMES = 8;
+const DESTINATION_TOLERANCE = 0.8;
+const ATTACK_SECTOR_COUNT = 6;
 
 interface PlayerMovement {
   player: Player;
   start: Position;
+  startFrame: number;
   destination: Position;
 }
 
@@ -37,11 +38,17 @@ interface DecisionData {
 })
 export class StrategyService {
 
+  startPositionsLeft: Player[];
+  startPositionsRight: Player[];
+
   lastLeft: User;
   lastRight: User;
   lastBall: Ball;
 
   disabledMovements: PlayerMovement[] = [];
+  // TODO: tiltás feloldás idő v cél elérés alapon
+
+  currentFrame: number = 1;
 
   constructor(
     private socketService: SocketService,
@@ -94,14 +101,18 @@ export class StrategyService {
     return false;
   }
 
+  private isFirstRound(): boolean {
+    return !this.lastLeft || !this.lastRight;
+  }
+
   private isNewRound(leftUser: User, rightUser: User): boolean {
-    return !this.lastLeft || !this.lastRight || !this.lastBall
+    return this.isFirstRound() || !this.lastBall
       || leftUser.points !== this.lastLeft.points || rightUser.points !== this.lastRight.points;
   }
 
   private isDisabledPlayerMovedEnough(player: Player): boolean {
     const disabled = this.disabledMovements.find(element => element.player.id === player.id);
-    return disabled && this.geometryService.getDistance(disabled.start, player.position) >= DISABLED_DISTANCE;
+    return disabled && this.currentFrame - disabled.startFrame >= DISABLED_FRAMES;
   }
 
   private unblockPlayers(myUser: User): void {
@@ -125,10 +136,21 @@ export class StrategyService {
       this.disabledMovements.push({
         player,
         start: player.position,
+        startFrame: this.currentFrame,
         destination
       });
       this.socketService.sendMoveCommand({ playerId: player.id, destination });
     }
+  }
+
+  private kickBall(player: Player, destination: Position, forceOfKick: number): void {
+    this.disabledMovements.push({
+      player,
+      start: player.position,
+      startFrame: this.currentFrame,
+      destination
+    });
+    this.socketService.sendKickCommand({ destination, forceOfKick });
   }
 
   private getPlayersNearBall(user: User, ball: Ball): Player[] {
@@ -161,10 +183,56 @@ export class StrategyService {
     return side.valueOf() === Side.LEFT.valueOf() ? Side.RIGHT : Side.LEFT;
   }
 
-  sendCommands(match: Match, mySide: Side): void {
+  private getDecisionsWithZeroPlayers(decisions: DecisionData[]): DecisionData[] {
+    return decisions.filter(decision => decision.teammates.length === 0 && decision.opponents.length === 0);
+  }
+
+  private getDecisionsWithOnlyTeammates(decisions: DecisionData[]): DecisionData[] {
+    return decisions.filter(decision => decision.teammates.length > 0 && decision.opponents.length === 0);
+  }
+
+  private getDecisionsWithOnlyOpponents(decisions: DecisionData[]): DecisionData[] {
+    return decisions.filter(decision => decision.teammates.length === 0 && decision.opponents.length > 0);
+  }
+
+  private getStartPosition(playerToSearch: Player): Position {
+    const players = playerToSearch.side.valueOf() === Side.LEFT.valueOf() ? this.startPositionsLeft : this.startPositionsRight;
+    for (const player of players) {
+      if (player.id === playerToSearch.id) {
+        return player.position;
+      }
+    }
+  }
+
+  // min included, max excluded
+  private randomBetweenUniform(min: number, max: number): number {
+    return Math.floor(Math.random() * (max - min)) + min;
+  }
+
+  private gaussianRand(): number {
+    let rand = 0;
+    for (let i = 0; i < 6; i += 1) {
+      rand += Math.random();
+    }
+    return rand / 6;
+  }
+
+  // min included, max excluded
+  private randomBetweenNormal(min: number, max: number): number {
+    return Math.floor(this.gaussianRand() * (max - min)) + min;
+  }
+
+  public sendCommands(match: Match, mySide: Side): void {
+    this.currentFrame++;
+
     const newLeft = this.getUserBySide(match, Side.LEFT);
     const newRight = this.getUserBySide(match, Side.RIGHT);
     const newBall = match.ball;
+
+    if (this.isFirstRound()) {
+      this.startPositionsLeft = newLeft.team;
+      this.startPositionsRight = newRight.team;
+    }
 
     if (this.isNewRound(newLeft, newRight)) {
       this.disabledMovements = [];
@@ -172,11 +240,12 @@ export class StrategyService {
       return;
     }
 
+    const myUser: User = this.getUserBySide(match, mySide);
+
     this.unblockPlayers(Side.LEFT.valueOf() === mySide.valueOf() ? newLeft : newRight);
 
     if (this.iHaveBall(newBall, mySide)) {
       const playerWithBall = newBall.player;
-      const myUser = this.getUserBySide(match, mySide);
       const otherUser = this.getUserBySide(match, this.revertSide(mySide));
 
       const attackSectors = this.geometryService.getSectors(
@@ -185,7 +254,6 @@ export class StrategyService {
       const possibleDecisions: DecisionData[] = attackSectors.map(sector => {
         return {
           sector,
-          // TODO: put this to separate function
           teammates: myUser.team.filter(player => this.geometryService.isInsideSector(playerWithBall.position,
             player.position, sector.sectorStart, sector.sectorEnd, CHECK_RADIUS)),
           opponents: otherUser.team.filter(player => this.geometryService.isInsideSector(playerWithBall.position,
@@ -193,37 +261,56 @@ export class StrategyService {
         };
       });
 
-      // TODO: remove this line:
-      this.movePlayer(playerWithBall,
-        mySide.valueOf() === Side.LEFT.valueOf() ? { x: 140, y: 60 } : { x: 0, y: 40 });
+      const zeroPlayers = this.getDecisionsWithZeroPlayers(possibleDecisions);
+      const onlyTeammates = this.getDecisionsWithOnlyTeammates(possibleDecisions);
+      const onlyOpponents = this.getDecisionsWithOnlyOpponents(possibleDecisions);
 
-      // félkör, CHECK_RADIUS sugárral -> 4 körcikk
-      // melyik körcikkben mennyi saját és ellenfél játékos van
-      // ha van olyan, ahol senki nincs, akkor arra indul CHECK_RADIUS távolságra
-      // ha több olyan van, ahol senki nincs, akkor sorsol
+      if (onlyTeammates.length > 0) {
+        console.log('ONLY TEAMMATES');
+        const decision = onlyTeammates[this.randomBetweenNormal(0, onlyTeammates.length)];
+        const destination = decision.teammates[this.randomBetweenUniform(0, decision.teammates.length)].position;
+        console.log('PASSING TO', destination)
+        this.kickBall(playerWithBall, destination, 1.5); // TODO: set force of kick
+        // TODO: miért nem passzolnak?
+      } else if (zeroPlayers.length > 0) {
+        const decision = zeroPlayers[this.randomBetweenNormal(0, zeroPlayers.length)];
+        const destination = this.geometryService.getMidPoint(decision.sector.sectorStart, decision.sector.sectorEnd);
+        this.movePlayer(playerWithBall, destination);
+        // TODO: ha a pálya szélén van, ne próbáljon meg kimenni
+      } else if (onlyOpponents.length > 0) { // go back home
+        const deltaX = mySide.valueOf() === Side.LEFT.valueOf() ? -10 : 10;
 
-      // ha valamelyikben csak saját játékos van, felé passzol
-      // ha többen is, sorsol
+        this.movePlayer(playerWithBall, {
+          x: playerWithBall.position.x + deltaX,
+          y: playerWithBall.position.y
+        });
+      } else { // default strategy
+        this.movePlayer(playerWithBall,
+          mySide.valueOf() === Side.LEFT.valueOf() ? { x: 140, y: 50 } : { x: 0, y: 50 });
+      }
 
-      // ha 2-nél több ellenfél van mindegyikben, elindul a saját kapu fele v. passzol
-
-      // lefedtünk-e minden esetet (alapértelmezett viselkedés?)
       // deadlockok:
       // megállnak a játékosok, és összevissza megy köztük a labda
       // beáll egy játékos, aki támadhatna - cselezéskor arrébb rak-e játékosokat a szerver?
     }
 
     if (this.otherTeamHasBall(newBall, mySide)) {
-      const myUser: User = this.getUserBySide(match, mySide);
       const playersNearBall = this.getPlayersNearBall(myUser, newBall);
       playersNearBall.forEach(player => this.movePlayer(player, newBall.position));
+      // TODO: what to do is no one is inside CHECK_RADIUS?
     }
 
     if (this.nobodyHasBall(newBall)) {
-      const myUser: User = this.getUserBySide(match, mySide);
       const distances: Distance[] = this.sortPlayersByDistance(myUser.team, newBall.position);
       const playerToRun = distances[0].player; // closest player to ball
       this.movePlayer(playerToRun, newBall.position);
+    }
+
+    // send back players to their start position
+    for (const player of myUser.team) {
+      if (this.geometryService.getDistance(player.position, newBall.position) > CHECK_RADIUS) {
+        this.movePlayer(player, this.getStartPosition(player));
+      }
     }
 
     // TODO: every player in team: go to start position when ball is not inside CHECK_RADIUS
