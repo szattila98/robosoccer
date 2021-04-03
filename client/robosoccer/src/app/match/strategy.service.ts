@@ -152,6 +152,7 @@ export class StrategyService {
   }
 
   private kickBall(player: Player, destination: Position, forceOfKick: number): void {
+    console.log('PASSING TO', destination.x, destination.y);
     this.disabledMovements.push({
       player,
       start: player.position,
@@ -262,13 +263,13 @@ export class StrategyService {
       const possibleDecisions: DecisionData[] = attackSectors.map(sector => {
         return {
           sector,
-          teammates: myUser.team.filter(player => this.geometryService.isInsideSector(playerWithBall.position,
-            player.position, sector.sectorStart, sector.sectorEnd, CHECK_RADIUS)
+          teammates: myUser.team.filter(player => this.geometryService.isInsideSector(player.position,
+            playerWithBall.position, sector.sectorStart, sector.sectorEnd, CHECK_RADIUS)
             && player.id !== playerWithBall.id
             && player.position.x !== playerWithBall.position.x
             && player.position.y !== playerWithBall.position.y),
-          opponents: otherUser.team.filter(player => this.geometryService.isInsideSector(playerWithBall.position,
-            player.position, sector.sectorStart, sector.sectorEnd, CHECK_RADIUS)),
+          opponents: otherUser.team.filter(player => this.geometryService.isInsideSector(player.position,
+            playerWithBall.position, sector.sectorStart, sector.sectorEnd, CHECK_RADIUS)),
         };
       });
 
@@ -283,8 +284,6 @@ export class StrategyService {
         const decision = onlyTeammates[this.randomBetweenNormal(0, onlyTeammates.length)];
         const destination = decision.teammates[this.randomBetweenUniform(0, decision.teammates.length)].position;
         this.kickBall(playerWithBall, destination, 1.5);
-        // TODO: miért nem passzolnak?
-        // TODO: miért passzolnak hátra?
       } else if (zeroPlayers.length > 0) {
         const decision = zeroPlayers[this.randomBetweenNormal(0, zeroPlayers.length)];
         const destination = this.geometryService.getMidPoint(decision.sector.sectorStart, decision.sector.sectorEnd);
