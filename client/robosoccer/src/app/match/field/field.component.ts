@@ -43,6 +43,7 @@ export class FieldComponent implements AfterViewInit {
   debug: boolean = environment.debug;
   selectedPlayer: Player;
   clickTimer: any;
+  frame: number = this.strategyService.frame;
 
   constructor(
     private router: Router,
@@ -131,6 +132,7 @@ export class FieldComponent implements AfterViewInit {
       this.match = body.match;
       this.updateField();
       this.strategyService.sendCommands(this.match, this.mySide);
+      this.frame = this.strategyService.frame;
     } catch (err) {
       console.error(err);
       this.router.navigateByUrl('/error');

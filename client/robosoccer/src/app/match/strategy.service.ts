@@ -46,13 +46,16 @@ export class StrategyService {
   lastBall: Ball;
 
   disabledMovements: PlayerMovement[] = [];
-  // TODO: tiltás feloldás idő v cél elérés alapon
 
   currentFrame: number = 1;
 
   constructor(
     private socketService: SocketService,
     private geometryService: GeometryService) { }
+
+  get frame() {
+    return this.currentFrame;
+  }
 
   private getUserBySide(match: Match, side: Side): User {
     for (const user of match.users) {
@@ -113,6 +116,11 @@ export class StrategyService {
   private isDisabledPlayerMovedEnough(player: Player): boolean {
     const disabled = this.disabledMovements.find(element => element.player.id === player.id);
     return disabled && this.currentFrame - disabled.startFrame >= DISABLED_FRAMES;
+  }
+
+  private isNearGate(player: Player): boolean {
+    return (player.side.valueOf() === Side.LEFT.valueOf() && player.position.x > FIELD_X_MAX - 30)
+      || (player.side.valueOf() === Side.RIGHT.valueOf() && player.position.x < 30);
   }
 
   private unblockPlayers(myUser: User): void {
@@ -255,7 +263,10 @@ export class StrategyService {
         return {
           sector,
           teammates: myUser.team.filter(player => this.geometryService.isInsideSector(playerWithBall.position,
-            player.position, sector.sectorStart, sector.sectorEnd, CHECK_RADIUS)),
+            player.position, sector.sectorStart, sector.sectorEnd, CHECK_RADIUS)
+            && player.id !== playerWithBall.id
+            && player.position.x !== playerWithBall.position.x
+            && player.position.y !== playerWithBall.position.y),
           opponents: otherUser.team.filter(player => this.geometryService.isInsideSector(playerWithBall.position,
             player.position, sector.sectorStart, sector.sectorEnd, CHECK_RADIUS)),
         };
@@ -265,21 +276,21 @@ export class StrategyService {
       const onlyTeammates = this.getDecisionsWithOnlyTeammates(possibleDecisions);
       const onlyOpponents = this.getDecisionsWithOnlyOpponents(possibleDecisions);
 
-      if (onlyTeammates.length > 0) {
-        console.log('ONLY TEAMMATES');
+      if (this.isNearGate(playerWithBall)) {
+        this.kickBall(playerWithBall,
+          mySide.valueOf() === Side.LEFT.valueOf() ? { x: 140, y: 50 } : { x: 0, y: 50 }, 1.5);
+      } else if (onlyTeammates.length > 0) {
         const decision = onlyTeammates[this.randomBetweenNormal(0, onlyTeammates.length)];
         const destination = decision.teammates[this.randomBetweenUniform(0, decision.teammates.length)].position;
-        console.log('PASSING TO', destination)
-        this.kickBall(playerWithBall, destination, 1.5); // TODO: set force of kick
+        this.kickBall(playerWithBall, destination, 1.5);
         // TODO: miért nem passzolnak?
+        // TODO: miért passzolnak hátra?
       } else if (zeroPlayers.length > 0) {
         const decision = zeroPlayers[this.randomBetweenNormal(0, zeroPlayers.length)];
         const destination = this.geometryService.getMidPoint(decision.sector.sectorStart, decision.sector.sectorEnd);
         this.movePlayer(playerWithBall, destination);
-        // TODO: ha a pálya szélén van, ne próbáljon meg kimenni
       } else if (onlyOpponents.length > 0) { // go back home
         const deltaX = mySide.valueOf() === Side.LEFT.valueOf() ? -10 : 10;
-
         this.movePlayer(playerWithBall, {
           x: playerWithBall.position.x + deltaX,
           y: playerWithBall.position.y
@@ -288,16 +299,12 @@ export class StrategyService {
         this.movePlayer(playerWithBall,
           mySide.valueOf() === Side.LEFT.valueOf() ? { x: 140, y: 50 } : { x: 0, y: 50 });
       }
-
-      // deadlockok:
-      // megállnak a játékosok, és összevissza megy köztük a labda
-      // beáll egy játékos, aki támadhatna - cselezéskor arrébb rak-e játékosokat a szerver?
     }
 
     if (this.otherTeamHasBall(newBall, mySide)) {
       const playersNearBall = this.getPlayersNearBall(myUser, newBall);
       playersNearBall.forEach(player => this.movePlayer(player, newBall.position));
-      // TODO: what to do is no one is inside CHECK_RADIUS?
+      // TODO: what to do when no one is inside CHECK_RADIUS?
     }
 
     if (this.nobodyHasBall(newBall)) {
@@ -313,9 +320,9 @@ export class StrategyService {
       }
     }
 
-    // TODO: every player in team: go to start position when ball is not inside CHECK_RADIUS
     // TODO: use ball movement direction instead of just the current position
     // TODO: when players are in the same position for longer time, choose one and move to random direction
+    // TODO: why player freezes when catched the ball?
 
     this.saveNewState(newLeft, newRight, newBall);
   }
