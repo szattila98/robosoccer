@@ -37,7 +37,7 @@ public class DisconnectListener {
         try {
             User user = Match.getInstance().getJoinedUser(sha.getSessionId());
             Match.getInstance().reset();
-            template.convertAndSend("/socket/game", new UserConnectionStateMessage(user, new Date(), ConnectionType.DISCONNECTED));
+            template.convertAndSend("/socket/join", new UserConnectionStateMessage(user, new Date(), ConnectionType.DISCONNECTED));
             log.warn("A user with sessionId: {} and name: {} disconnected, resetting match!", user.getSessionId(), user.getName());
         } catch (NoSuchUserException e) {
             log.error(e.getMessage() + " {}", sha.getSessionId());

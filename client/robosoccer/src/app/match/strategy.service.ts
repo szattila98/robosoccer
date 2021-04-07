@@ -13,6 +13,9 @@ const FIELD_Y_MAX = 100;
 const CHECK_RADIUS = 30;
 const DISABLED_FRAMES = 8;
 const DESTINATION_TOLERANCE = 0.8;
+const CONGESTION_TOLERANCE_RADIUS = 1.5;
+const CONGESTION_TOLERANCE_PLAYERS = 3;
+const CONGESTION_CONTROL_DELTA = 5;
 const ATTACK_SECTOR_COUNT = 6;
 
 interface PlayerMovement {
@@ -47,13 +50,13 @@ export class StrategyService {
 
   disabledMovements: PlayerMovement[] = [];
 
-  currentFrame: number = 1;
+  currentFrame = 0;
 
   constructor(
     private socketService: SocketService,
     private geometryService: GeometryService) { }
 
-  get frame() {
+  get frame(): number {
     return this.currentFrame;
   }
 
@@ -123,6 +126,26 @@ export class StrategyService {
       || (player.side.valueOf() === Side.RIGHT.valueOf() && player.position.x < 30);
   }
 
+  private getPlayersInCongestion(match: Match, side: Side): Player[] {
+    if (!match.ball.player) {
+      return [];
+    }
+
+    const user = this.getUserBySide(match, side);
+    const otherUser = this.getUserBySide(match, this.revertSide(side));
+
+    const teammatesInCongestion = user.team.filter(player => {
+      return this.geometryService.getDistance(match.ball.position, player.position) < CONGESTION_TOLERANCE_RADIUS;
+    });
+    const opponentsInCongestion = otherUser.team.filter(player => {
+      return this.geometryService.getDistance(match.ball.position, player.position) < CONGESTION_TOLERANCE_RADIUS;
+    });
+
+    return (teammatesInCongestion.length + opponentsInCongestion.length) > CONGESTION_TOLERANCE_PLAYERS
+      ? teammatesInCongestion
+      : [];
+  }
+
   private unblockPlayers(myUser: User): void {
     const players = myUser?.team;
 
@@ -152,7 +175,6 @@ export class StrategyService {
   }
 
   private kickBall(player: Player, destination: Position, forceOfKick: number): void {
-    console.log('PASSING TO', destination.x, destination.y);
     this.disabledMovements.push({
       player,
       start: player.position,
@@ -253,6 +275,17 @@ export class StrategyService {
 
     this.unblockPlayers(Side.LEFT.valueOf() === mySide.valueOf() ? newLeft : newRight);
 
+    // resolve congestion if necessary
+    const playersInCongestion = this.getPlayersInCongestion(match, mySide);
+    for (const player of playersInCongestion) {
+      const deltaX = this.randomBetweenUniform(-CONGESTION_CONTROL_DELTA, CONGESTION_CONTROL_DELTA);
+      const deltaY = this.randomBetweenUniform(-CONGESTION_CONTROL_DELTA, CONGESTION_CONTROL_DELTA);
+      this.movePlayer(player, {
+        x: player.position.x + deltaX,
+        y: player.position.y + deltaY
+      });
+    }
+
     if (this.iHaveBall(newBall, mySide)) {
       const playerWithBall = newBall.player;
       const otherUser = this.getUserBySide(match, this.revertSide(mySide));
@@ -303,7 +336,6 @@ export class StrategyService {
     if (this.otherTeamHasBall(newBall, mySide)) {
       const playersNearBall = this.getPlayersNearBall(myUser, newBall);
       playersNearBall.forEach(player => this.movePlayer(player, newBall.position));
-      // TODO: what to do when no one is inside CHECK_RADIUS?
     }
 
     if (this.nobodyHasBall(newBall)) {
@@ -312,16 +344,15 @@ export class StrategyService {
       this.movePlayer(playerToRun, newBall.position);
     }
 
-    // send back players to their start position
+    // send back players to their start position if necessary
     for (const player of myUser.team) {
       if (this.geometryService.getDistance(player.position, newBall.position) > CHECK_RADIUS) {
         this.movePlayer(player, this.getStartPosition(player));
       }
     }
 
-    // TODO: use ball movement direction instead of just the current position
-    // TODO: when players are in the same position for longer time, choose one and move to random direction
-    // TODO: why player freezes when catched the ball?
+    // TODO: use ball movement direction, not just the current position
+    // TODO: why player freezes some time when catches the ball?
 
     this.saveNewState(newLeft, newRight, newBall);
   }
