@@ -10,6 +10,7 @@ import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Represents a singleton soccer match.
@@ -101,9 +102,7 @@ public class Match {
      * Resets the match.
      */
     public void reset() {
-        List<User> listWithConnectedUser = this.getUsers();
         instance = new Match();
-        instance.getUsers().addAll(listWithConnectedUser);
     }
 
     /**
@@ -128,11 +127,18 @@ public class Match {
      */
     public void checkForBallCaptureEvent() {
         for (User user : this.users) {
-            if (this.ball.getPlayer() == null || this.ball.getPlayer().getSide() != user.getSide()) {
-                for (Player player : user.getTeam()) {
-                    if (player.fallsInsidePlayerReach(this.ball.getPosition())) {
+            for (Player player : user.getTeam()) {
+                boolean ballFallsInsidePlayerReach = player.fallsInsidePlayerReach(this.ball.getPosition());
+                if (this.ball.getPlayer() != null) {
+                    boolean notSameTeamTackle = this.ball.getPlayer().getSide() != user.getSide();
+                    boolean successfulTackle = new Random().nextInt(101) <= 41;
+                    if (ballFallsInsidePlayerReach && notSameTeamTackle && successfulTackle) {
                         this.ball.setPlayer(player);
+                        return;
                     }
+                } else if (ballFallsInsidePlayerReach) {
+                    this.ball.setPlayer(player);
+                    return;
                 }
             }
         }
@@ -176,7 +182,7 @@ public class Match {
      */
     public void startNextRound() {
         advanceRound();
-        this.ball.recenterBall();
+        this.ball.randomBallPosition();
         this.ball.setPlayer(null);
         for (User u : this.users) {
             u.fillTeam();

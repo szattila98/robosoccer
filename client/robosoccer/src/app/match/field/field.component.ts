@@ -43,6 +43,7 @@ export class FieldComponent implements AfterViewInit {
   debug: boolean = environment.debug;
   selectedPlayer: Player;
   clickTimer: any;
+  frame: number = this.strategyService.frame;
 
   constructor(
     private router: Router,
@@ -65,6 +66,15 @@ export class FieldComponent implements AfterViewInit {
       console.error(err);
       this.router.navigateByUrl('/error');
     }
+  }
+
+  get mySide(): Side {
+    const currentUser = this.match.users.filter(user => user.sessionId === this.sessionId);
+    if (currentUser.length !== 1) {
+      return null;
+    }
+
+    return currentUser[0].side;
   }
 
   get canShowResults(): boolean {
@@ -121,6 +131,8 @@ export class FieldComponent implements AfterViewInit {
       const body = JSON.parse(message.body);
       this.match = body.match;
       this.updateField();
+      this.strategyService.sendCommands(this.match, this.mySide);
+      this.frame = this.strategyService.frame;
     } catch (err) {
       console.error(err);
       this.router.navigateByUrl('/error');
